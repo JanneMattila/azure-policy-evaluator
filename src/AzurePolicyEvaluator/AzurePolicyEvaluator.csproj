@@ -7,6 +7,9 @@
     <Nullable>enable</Nullable>
     <PublishAot>true</PublishAot>
     <InvariantGlobalization>true</InvariantGlobalization>
+    <PackageProjectUrl>https://github.com/JanneMattila/azure-policy-evaluator</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/JanneMattila/azure-policy-evaluator</RepositoryUrl>
+    <AssemblyName>ape</AssemblyName>
   </PropertyGroup>
 
 </Project>

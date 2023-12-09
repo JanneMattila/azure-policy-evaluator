@@ -12,7 +12,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{C8B23A6F-6
 		README.md = README.md
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ape", "src\ape\ape.csproj", "{6AAD90CA-721D-4031-94CC-4FC996A3102E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AzurePolicyEvaluator", "src\AzurePolicyEvaluator\AzurePolicyEvaluator.csproj", "{75813787-65D1-4E5E-9B68-169180B29E98}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AzurePolicyEvaluatorTests", "tests\AzurePolicyEvaluatorTests\AzurePolicyEvaluatorTests.csproj", "{29EC4642-0E51-4A52-B2F9-19E33A9BE8DF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -20,16 +22,21 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{6AAD90CA-721D-4031-94CC-4FC996A3102E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{6AAD90CA-721D-4031-94CC-4FC996A3102E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{6AAD90CA-721D-4031-94CC-4FC996A3102E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{6AAD90CA-721D-4031-94CC-4FC996A3102E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{75813787-65D1-4E5E-9B68-169180B29E98}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{75813787-65D1-4E5E-9B68-169180B29E98}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{75813787-65D1-4E5E-9B68-169180B29E98}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{75813787-65D1-4E5E-9B68-169180B29E98}.Release|Any CPU.Build.0 = Release|Any CPU
+		{29EC4642-0E51-4A52-B2F9-19E33A9BE8DF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{29EC4642-0E51-4A52-B2F9-19E33A9BE8DF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{29EC4642-0E51-4A52-B2F9-19E33A9BE8DF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{29EC4642-0E51-4A52-B2F9-19E33A9BE8DF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{6AAD90CA-721D-4031-94CC-4FC996A3102E} = {7CAE18C9-6DEC-439C-85AB-4BA0954CEEBD}
+		{75813787-65D1-4E5E-9B68-169180B29E98} = {7CAE18C9-6DEC-439C-85AB-4BA0954CEEBD}
+		{29EC4642-0E51-4A52-B2F9-19E33A9BE8DF} = {725B5AE0-A40B-4910-9F5D-9A8A2E871171}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {EC4358F5-AC6F-4367-9816-7276FD745E78}
