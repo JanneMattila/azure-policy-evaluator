@@ -6,7 +6,7 @@ so don't expect anything from it.
 ## Background
 
 Azure Policy development is too hard.
-Common development flow is:
+Unfortunately, typical policy development flow is:
 
 - You manipulate JSON files
 - You deploy them to Azure
@@ -28,7 +28,7 @@ Example:
 Try to deny inbound traffic to port 22 on Network Security Group (NSG).
 
 If you test this policy in Azure Portal by adding inbound rule to allow this traffic,
-policy does block you from doing that.
+policy correctly blocks you from doing that. So, it works as expected.
 
 If you then try to do the same with Azure PowerShell:
 
@@ -50,7 +50,8 @@ $nsg | Add-AzNetworkSecurityRuleConfig `
 $nsg |  Set-AzNetworkSecurityGroup
 ```
 
-It might work just fine and your policy does not block you from doing that.
+Your policy _might_ not block this time and your inbound rule is successfully created.
+This is exactly what you don't want to happen.
 
 Above can happen if other one is sending full NSG object:
 
