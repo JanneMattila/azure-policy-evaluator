@@ -67,6 +67,10 @@ Something that runs very similar to any unit test framework.
 You edit the file and voila, you see the results immediately
 in your console.
 
+What if we would have example test cases for you to use?
+You're developing NSG rules, then here are _set of test cases_
+to ease your development.
+
 ## Experiment
 
 The idea is to create a tool that can evaluate Azure Policy definitions 
