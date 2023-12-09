@@ -73,5 +73,8 @@ public class Evaluator
 
     private EvaluationResult ExecuteEvaluation(JsonElement policy, JsonElement test)
     {
+        var result = new EvaluationResult();
+
+        return result;
     }
 }

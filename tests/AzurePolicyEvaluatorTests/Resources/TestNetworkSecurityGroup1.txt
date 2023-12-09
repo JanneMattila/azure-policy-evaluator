@@ -1,0 +1,26 @@
+{
+    "name": "nsg-app",
+    "type": "Microsoft.Network/networkSecurityGroups",
+    "location": "northeurope",
+    "properties": {
+        "securityRules": [
+            {
+                "type": "Microsoft.Network/networkSecurityGroups/securityRules",
+                "properties": {
+                    "protocol": "*",
+                    "sourcePortRange": "*",
+                    "destinationPortRange": "22",
+                    "sourceAddressPrefix": "*",
+                    "destinationAddressPrefix": "10.0.0.4",
+                    "access": "Allow",
+                    "priority": 4096,
+                    "direction": "Inbound",
+                    "sourcePortRanges": [],
+                    "destinationPortRanges": [],
+                    "sourceAddressPrefixes": [],
+                    "destinationAddressPrefixes": []
+                }
+            }
+        ]
+    }
+}

@@ -31,4 +31,19 @@ public class BasicEvaluatorTests
         // Assert
         Assert.False(evaluationResult.IsSuccess);
     }
+
+    [Fact]
+    public void NetworkSecurityGroupPolicyTest()
+    {
+        // Arrange
+        var policy = BasicResources.PolicyNetworkSecurityGroup1;
+        var test = BasicResources.TestNetworkSecurityGroup1;
+        var evaluator = new Evaluator();
+
+        // Act
+        var evaluationResult = evaluator.Evaluate(policy, test);
+
+        // Assert
+        Assert.True(evaluationResult.IsSuccess);
+    }
 }

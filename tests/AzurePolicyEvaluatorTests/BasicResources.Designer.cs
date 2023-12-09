@@ -59,5 +59,51 @@ namespace AzurePolicyEvaluatorTests {
                 resourceCulture = value;
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {
+        ///    &quot;name&quot;: &quot;8abf7f28-f631-4700-9ff7-26f7e994458a&quot;,
+        ///    &quot;type&quot;: &quot;Microsoft.Authorization/policyDefinitions&quot;,
+        ///    &quot;properties&quot;: {
+        ///        &quot;displayName&quot;: &quot;deny-ports-nsg&quot;,
+        ///        &quot;description&quot;: &quot;need to add description&quot;,
+        ///        &quot;metadata&quot;: {
+        ///            &quot;version&quot;: &quot;1.0.0&quot;,
+        ///            &quot;category&quot;: &quot;Network&quot;
+        ///        },
+        ///        &quot;mode&quot;: &quot;All&quot;,
+        ///        &quot;parameters&quot;: {
+        ///            &quot;effect&quot;: {
+        ///                &quot;type&quot;: &quot;String&quot;,
+        ///                &quot;metadata&quot;: {
+        ///                    &quot;displayName&quot;: &quot;Effec [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string PolicyNetworkSecurityGroup1 {
+            get {
+                return ResourceManager.GetString("PolicyNetworkSecurityGroup1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {
+        ///    &quot;name&quot;: &quot;nsg-app&quot;,
+        ///    &quot;type&quot;: &quot;Microsoft.Network/networkSecurityGroups&quot;,
+        ///    &quot;location&quot;: &quot;northeurope&quot;,
+        ///    &quot;properties&quot;: {
+        ///        &quot;securityRules&quot;: [
+        ///            {
+        ///                &quot;type&quot;: &quot;Microsoft.Network/networkSecurityGroups/securityRules&quot;,
+        ///                &quot;properties&quot;: {
+        ///                    &quot;protocol&quot;: &quot;*&quot;,
+        ///                    &quot;sourcePortRange&quot;: &quot;*&quot;,
+        ///                    &quot;destinationPortRange&quot;: &quot;22&quot;,
+        ///                    &quot;sourceAddressPrefix&quot;: &quot;*&quot;,
+        ///                    &quot;destinationAdd [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string TestNetworkSecurityGroup1 {
+            get {
+                return ResourceManager.GetString("TestNetworkSecurityGroup1", resourceCulture);
+            }
+        }
     }
 }
