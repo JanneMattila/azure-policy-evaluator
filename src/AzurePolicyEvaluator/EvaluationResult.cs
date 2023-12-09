@@ -13,4 +13,6 @@ public class EvaluationResult
     public string EvaluationPath { get; set; } = string.Empty;
 
     public string Result { get; set; } = string.Empty;
+
+    public string Details { get; set; } = string.Empty;
 }
