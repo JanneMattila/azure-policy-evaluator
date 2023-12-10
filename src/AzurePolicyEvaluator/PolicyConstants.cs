@@ -42,4 +42,5 @@ public static class PolicyConstants
     public const string Then = "then";
     public const string Effect = "effect";
     public const string Field = "field";
+    public const string Type = "type";
 }

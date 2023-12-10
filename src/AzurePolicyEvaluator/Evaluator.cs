@@ -5,6 +5,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using static AzurePolicyEvaluator.PolicyConstants;
 
 namespace AzurePolicyEvaluator;
 
@@ -72,7 +73,7 @@ public class Evaluator
         return result;
     }
 
-    private EvaluationResult ExecuteEvaluation(string name, JsonElement policy, JsonElement test)
+    internal EvaluationResult ExecuteEvaluation(string name, JsonElement policy, JsonElement test)
     {
         var result = new EvaluationResult();
 
@@ -141,7 +142,7 @@ public class Evaluator
         return result;
     }
 
-    private EvaluationResult ExecuteFieldEvaluation(JsonElement fieldObject, JsonElement policy, JsonElement test)
+    internal EvaluationResult ExecuteFieldEvaluation(JsonElement fieldObject, JsonElement policy, JsonElement test)
     {
         var result = new EvaluationResult();
         var details = string.Empty;
@@ -150,20 +151,46 @@ public class Evaluator
             var propertyName = fieldObject.GetString();
             if (!string.IsNullOrEmpty(propertyName))
             {
-                if (!test.TryGetProperty(propertyName, out var propertyElement))
+                var propertyValue = string.Empty;
+                if (propertyName.Contains('/'))
                 {
-                    // No property with the given name exists in the test file.
-                    result.IsSuccess = true;
-                    return result;
-                }
+                    var type = test.GetProperty(PolicyConstants.Type).GetString();
+                    propertyName = propertyName.Substring(type.Length + 1);
 
-                var propertyValue = propertyElement.GetString();
+                    var properties = test.GetProperty(PolicyConstants.Properties.Name);
+
+                    if (!properties.TryGetProperty(propertyName, out var propertyElement))
+                    {
+                        // No property with the given name exists in the test file.
+                        result.IsSuccess = true;
+                        return result;
+                    }
+
+                    propertyValue = propertyElement.GetString();
+                }
+                else
+                {
+                    if (!test.TryGetProperty(propertyName, out var propertyElement))
+                    {
+                        // No property with the given name exists in the test file.
+                        result.IsSuccess = true;
+                        return result;
+                    }
+
+                    propertyValue = propertyElement.GetString();
+                }
 
                 if (policy.TryGetProperty(PolicyConstants.Conditions.Equals, out var equalsElement))
                 {
                     var equalsValue = equalsElement.GetString();
                     result.IsSuccess = propertyValue != equalsValue;
-                    details = $"Property {propertyName} does not equal {equalsValue}.";
+                    details = $"Property '{propertyName}' \"equals\" '{equalsValue}'.";
+                }
+                else if (policy.TryGetProperty(PolicyConstants.Conditions.NotEquals, out var notEqualsElement))
+                {
+                    var notEqualsValue = notEqualsElement.GetString();
+                    result.IsSuccess = propertyValue == notEqualsValue;
+                    details = $"Property '{propertyName}' \"notEquals\" '{notEqualsValue}'.";
                 }
             }
         }
@@ -172,7 +199,7 @@ public class Evaluator
             throw new NotImplementedException($"Field type {fieldObject.ValueKind} is not implemented.");
         }
 
-        if (result.IsSuccess)
+        if (!result.IsSuccess)
         {
             result.Result = EvaluationResultTexts.FieldEvaluationFailed;
             result.Details = details;

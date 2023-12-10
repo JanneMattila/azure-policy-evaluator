@@ -1,3 +1,5 @@
+using System.Text.Json;
+
 namespace AzurePolicyEvaluatorTests;
 
 public class BasicEvaluatorTests
@@ -42,6 +44,43 @@ public class BasicEvaluatorTests
 
         // Act
         var evaluationResult = evaluator.Evaluate(policy, test);
+
+        // Assert
+        Assert.True(evaluationResult.IsSuccess);
+    }
+
+    [Fact]
+    public void NetworkSecurityGroupPolicyTest2()
+    {
+        // Arrange
+        var fieldDocument = JsonDocument.Parse(@"{
+    ""field"": ""Microsoft.Network/networkSecurityGroups/securityRules/sourceAddressPrefix"",
+    ""notEquals"": ""*""
+}");
+        var test = JsonDocument.Parse(@"{
+    ""type"": ""Microsoft.Network/networkSecurityGroups/securityRules"",
+    ""properties"": {
+        ""protocol"": ""*"",
+        ""sourcePortRange"": ""*"",
+        ""destinationPortRange"": ""22"",
+        ""sourceAddressPrefix"": ""*"",
+        ""destinationAddressPrefix"": ""10.0.0.4"",
+        ""access"": ""Allow"",
+        ""priority"": 4096,
+        ""direction"": ""Inbound"",
+        ""sourcePortRanges"": [],
+        ""destinationPortRanges"": [],
+        ""sourceAddressPrefixes"": [],
+        ""destinationAddressPrefixes"": []
+    }
+}");
+
+        var fieldElement = fieldDocument.RootElement.GetProperty("field");
+
+        var evaluator = new Evaluator();
+
+        // Act
+        var evaluationResult = evaluator.ExecuteFieldEvaluation(fieldElement, fieldDocument.RootElement, test.RootElement);
 
         // Assert
         Assert.True(evaluationResult.IsSuccess);

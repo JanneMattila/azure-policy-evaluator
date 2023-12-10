@@ -12,4 +12,8 @@
     <AssemblyName>ape</AssemblyName>
   </PropertyGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="AzurePolicyEvaluatorTests" />
+  </ItemGroup>
+
 </Project>
