@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace AzurePolicyEvaluator;
 
@@ -66,15 +67,116 @@ public class Evaluator
             return result;
         }
 
-        result = ExecuteEvaluation(policyRoot, testDocument.RootElement);
+        result = ExecuteEvaluation(PolicyConstants.Properties.If, policyRoot, testDocument.RootElement);
 
         return result;
     }
 
-    private EvaluationResult ExecuteEvaluation(JsonElement policy, JsonElement test)
+    private EvaluationResult ExecuteEvaluation(string name, JsonElement policy, JsonElement test)
     {
         var result = new EvaluationResult();
 
+        if (policy.ValueKind == JsonValueKind.Object)
+        {
+            if (policy.TryGetProperty(PolicyConstants.Field, out var fieldObject))
+            {
+                result = ExecuteFieldEvaluation(fieldObject, policy, test);
+                return result;
+            }
+            else
+            {
+                foreach (var property in policy.EnumerateObject())
+                {
+                    result = ExecuteEvaluation(property.Name, property.Value, test);
+                    if (!result.IsSuccess)
+                    {
+                        return result;
+                    }
+                }
+            }
+        }
+        else if (policy.ValueKind == JsonValueKind.Array)
+        {
+            var results = new List<EvaluationResult>();
+            foreach (var array in policy.EnumerateArray())
+            {
+                result = ExecuteEvaluation(string.Empty, array, test);
+                results.Add(result);
+            }
+
+            switch (name)
+            {
+                case PolicyConstants.LogicalOperators.Not:
+                    result.IsSuccess = !results.First().IsSuccess;
+                    if (!result.IsSuccess)
+                    {
+                        var firstResult = results.First();
+                        result.Result = firstResult.Result;
+                        result.Details = firstResult.Details;
+                    }
+                    break;
+                case PolicyConstants.LogicalOperators.AnyOf:
+                    result.IsSuccess = results.Any(r => r.IsSuccess);
+                    if (!result.IsSuccess)
+                    {
+                        var failedResult = results.Where(r => !r.IsSuccess).First();
+                        result.Result = failedResult.Result;
+                        result.Details = failedResult.Details;
+                    }
+                    break;
+                case PolicyConstants.LogicalOperators.AllOf:
+                    result.IsSuccess = results.All(r => r.IsSuccess);
+                    if (!result.IsSuccess)
+                    {
+                        var failedResult = results.Where(r => !r.IsSuccess).First();
+                        result.Result = failedResult.Result;
+                        result.Details = failedResult.Details;
+                    }
+                    break;
+                default:
+                    throw new NotImplementedException($"Logical operator {name} is not implemented.");
+            }
+        }
+
+        return result;
+    }
+
+    private EvaluationResult ExecuteFieldEvaluation(JsonElement fieldObject, JsonElement policy, JsonElement test)
+    {
+        var result = new EvaluationResult();
+        var details = string.Empty;
+        if (fieldObject.ValueKind == JsonValueKind.String)
+        {
+            var propertyName = fieldObject.GetString();
+            if (!string.IsNullOrEmpty(propertyName))
+            {
+                if (!test.TryGetProperty(propertyName, out var propertyElement))
+                {
+                    // No property with the given name exists in the test file.
+                    result.IsSuccess = true;
+                    return result;
+                }
+
+                var propertyValue = propertyElement.GetString();
+
+                if (policy.TryGetProperty(PolicyConstants.Conditions.Equals, out var equalsElement))
+                {
+                    var equalsValue = equalsElement.GetString();
+                    result.IsSuccess = propertyValue != equalsValue;
+                    details = $"Property {propertyName} does not equal {equalsValue}.";
+                }
+            }
+        }
+        else
+        {
+            throw new NotImplementedException($"Field type {fieldObject.ValueKind} is not implemented.");
+        }
+
+        if (result.IsSuccess)
+        {
+            result.Result = EvaluationResultTexts.FieldEvaluationFailed;
+            result.Details = details;
+        }
         return result;
     }
 }

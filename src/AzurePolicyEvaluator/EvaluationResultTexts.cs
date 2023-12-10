@@ -14,5 +14,5 @@ public static class EvaluationResultTexts
 
     public const string PolicyModeIsNotSupported = "Policy mode \"all\" is only supported";
 
-
+    public const string FieldEvaluationFailed = "Field evaluation failed";
 }
