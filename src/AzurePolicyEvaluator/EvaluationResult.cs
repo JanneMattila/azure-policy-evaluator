@@ -1,14 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using static AzurePolicyEvaluator.PolicyConstants;
 
 namespace AzurePolicyEvaluator;
 
 public class EvaluationResult
 {
-    public bool IsSuccess { get; set; } = false;
+    public string Effect { get; set; } = Effects.Deny;
+
+    public bool Condition { get; set; } = false;
 
     public string EvaluationPath { get; set; } = string.Empty;
 

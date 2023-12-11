@@ -39,6 +39,12 @@ public static class PolicyConstants
         // TODO: Add more conditions from: https://learn.microsoft.com/en-us/azure/governance/policy/concepts/definition-structure#conditions
     }
 
+    public static class Effects
+    {
+        public const string Audit = "Audit";
+        public const string Deny = "Deny";
+    }
+
     public const string Then = "then";
     public const string Effect = "effect";
     public const string Field = "field";
