@@ -36,7 +36,21 @@ public static class PolicyConstants
         public new const string Equals = "equals";
         public const string NotEquals = "notEquals";
         public const string In = "in";
+        public const string NotIn = "notIn";
         // TODO: Add more conditions from: https://learn.microsoft.com/en-us/azure/governance/policy/concepts/definition-structure#conditions
+    }
+
+    public static class TemplateFunctions
+    {
+        // https://learn.microsoft.com/en-us/azure/azure-resource-manager/templates/template-functions
+        public const string StartMarker = "[";
+        public const string EndMarker = "]";
+        public const string StartFunction = "(";
+        public const string EndFunction = ")";
+        public const string StringMarker = "'";
+
+        public const string Parameters = "parameters";
+        public const string Concat = "concat";
     }
 
     public static class Effects
@@ -49,4 +63,5 @@ public static class PolicyConstants
     public const string Effect = "effect";
     public const string Field = "field";
     public const string Type = "type";
+    public const string ArrayMemberReference = "[*]";
 }

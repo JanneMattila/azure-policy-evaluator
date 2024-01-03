@@ -1,12 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection.Metadata;
-using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
-using System.Xml.Linq;
 using static AzurePolicyEvaluator.PolicyConstants;
 
 namespace AzurePolicyEvaluator;
@@ -14,7 +7,7 @@ namespace AzurePolicyEvaluator;
 public class Evaluator
 {
     private readonly ILogger<Evaluator> _logger;
-    private List<Parameter> _parameters = [];
+    internal List<Parameter> _parameters = [];
 
     public Evaluator(ILogger<Evaluator> logger)
     {
@@ -264,24 +257,43 @@ public class Evaluator
             var propertyName = fieldObject.GetString();
             if (!string.IsNullOrEmpty(propertyName))
             {
-                string? propertyValue;
+                string? propertyValue = null;
                 if (propertyName.Contains('/'))
                 {
                     _logger.LogDebug("Property {PropertyName} is resource property", propertyName);
 
                     var type = test.GetProperty(PolicyConstants.Type).GetString();
-                    propertyName = propertyName.Substring(type.Length + 1);
 
-                    var properties = test.GetProperty(Properties.Name);
-
-                    if (!properties.TryGetProperty(propertyName, out var propertyElement))
+                    if (!propertyName.StartsWith(type))
                     {
-                        // No property with the given name exists in the test file.
+                        // Property name does not start with the resource type.
                         result.Condition = false;
                         return result;
                     }
 
-                    propertyValue = propertyElement.GetString();
+                    propertyName = propertyName.Substring(type.Length + 1);
+
+                    var properties = test.GetProperty(Properties.Name);
+
+                    if (propertyName.Contains(PolicyConstants.ArrayMemberReference))
+                    {
+                        var results = ExecuteArrayFieldEvaluation(propertyName, properties, fieldObject, policy, test);
+
+                        // From:https://learn.microsoft.com/en-us/azure/governance/policy/how-to/author-policies-for-arrays#referencing-the-array-members-collection
+                        // -> AllOf: The condition is true if all of the array members meet the condition.
+                        result.Condition = results.All(o => o.Condition);
+                    }
+                    else
+                    {
+                        if (!properties.TryGetProperty(propertyName, out var propertyElement))
+                        {
+                            // No property with the given name exists in the test file.
+                            result.Condition = false;
+                            return result;
+                        }
+
+                        propertyValue = propertyElement.GetString();
+                    }
                 }
                 else
                 {
@@ -295,19 +307,7 @@ public class Evaluator
                     propertyValue = propertyElement.GetString();
                 }
 
-                if (policy.TryGetProperty(Conditions.Equals, out var equalsElement))
-                {
-                    var equalsValue = equalsElement.GetString();
-                    result.Condition = propertyValue == equalsValue;
-                    _logger.LogDebug("Property {PropertyName} \"equals\" {EqualsValue} is {Condition}", propertyName, equalsValue, result.Condition);
-                }
-                else if (policy.TryGetProperty(Conditions.NotEquals, out var notEqualsElement))
-                {
-                    var notEqualsValue = notEqualsElement.GetString();
-                    result.Condition = propertyValue != notEqualsValue;
-
-                    _logger.LogDebug("Property {PropertyName} \"notEquals\" {NotEqualsValue} is {Condition}", propertyName, notEqualsValue, result.Condition);
-                }
+                result = FieldComparison(policy, propertyName, propertyValue);
             }
         }
         else
@@ -316,5 +316,158 @@ public class Evaluator
         }
 
         return result;
+    }
+
+    internal EvaluationResult FieldComparison(JsonElement policy, string propertyName, string propertyValue)
+    {
+        EvaluationResult result = new();
+        if (policy.TryGetProperty(Conditions.Equals, out var equalsElement))
+        {
+            var equalsValue = equalsElement.GetString();
+            var value = RunTemplateFunctions(equalsValue)?.ToString();
+            result.Condition = propertyValue == value;
+            _logger.LogDebug("Property {PropertyName} \"equals\" {EqualsValue} is {Condition}", propertyName, equalsValue, result.Condition);
+        }
+        else if (policy.TryGetProperty(Conditions.NotEquals, out var notEqualsElement))
+        {
+            var notEqualsValue = notEqualsElement.GetString();
+            var value = RunTemplateFunctions(notEqualsValue)?.ToString();
+            result.Condition = propertyValue != value;
+
+            _logger.LogDebug("Property {PropertyName} \"notEquals\" {NotEqualsValue} is {Condition}", propertyName, notEqualsValue, result.Condition);
+        }
+        else if (policy.TryGetProperty(Conditions.In, out var inElement))
+        {
+            var inValue = inElement.GetString();
+            var list = RunTemplateFunctions(inValue) as List<string>;
+            ArgumentNullException.ThrowIfNull(list, nameof(list));
+            result.Condition = list.Contains(propertyValue);
+
+            _logger.LogDebug("Property {PropertyName} \"in\" {InValue} is {Condition}", propertyName, inValue, result.Condition);
+        }
+        else if (policy.TryGetProperty(Conditions.NotIn, out var notInElement))
+        {
+            var notInValue = notInElement.GetString();
+            var list = RunTemplateFunctions(notInValue) as List<string>;
+            ArgumentNullException.ThrowIfNull(list, nameof(list));
+            result.Condition = !list.Contains(propertyValue);
+
+            _logger.LogDebug("Property {PropertyName} \"notIn\" {NotInValue} is {Condition}", propertyName, notInValue, result.Condition);
+        }
+        else
+        {
+            throw new NotImplementedException($"All comparison operations are not yet implemented.");
+        }
+        return result;
+    }
+
+    internal object RunTemplateFunctions(string text)
+    {
+        // From: https://learn.microsoft.com/en-us/azure/azure-resource-manager/templates/template-functions
+        if (text.StartsWith(TemplateFunctions.StartMarker))
+        {
+            text = text.Substring(1, text.Length - 2);
+
+            var startIndex = text.IndexOf(TemplateFunctions.StartFunction);
+            var endIndex = text.LastIndexOf(TemplateFunctions.EndFunction);
+            var function = text.Substring(0, startIndex);
+            var functionParameters = text.Substring(startIndex + 1, endIndex - startIndex - 1);
+            var parameters = RunTemplateFunctions(functionParameters);
+
+            switch (function)
+            {
+                case TemplateFunctions.Parameters:
+                    var requiredParameter = _parameters.FirstOrDefault(o => o.Name == parameters.ToString());
+                    if (requiredParameter == null)
+                    {
+                        throw new KeyNotFoundException($"Parameter {parameters} not found.");
+                    }
+                    return requiredParameter.DefaultValue;
+
+                case TemplateFunctions.Concat:
+                    var concatParameters = parameters as List<string>;
+                    text = string.Join(string.Empty, concatParameters);
+                    break;
+            }
+        }
+        else if (text.StartsWith(TemplateFunctions.StringMarker) && text.EndsWith(TemplateFunctions.StringMarker))
+        {
+            text = text.Substring(1, text.Length - 2);
+        }
+
+        return text;
+    }
+
+    internal List<EvaluationResult> ExecuteArrayFieldEvaluation(string propertyName, JsonElement propertiesElement, JsonElement fieldObject, JsonElement policy, JsonElement test)
+    {
+        var results = new List<EvaluationResult>();
+        var arrayName = propertyName.Substring(0, propertyName.IndexOf(PolicyConstants.ArrayMemberReference));
+        if (!propertiesElement.TryGetProperty(arrayName, out var arrayPropertyElement))
+        {
+            // No array property with the given name exists in the test file.
+            results.Add(new EvaluationResult
+            {
+                Condition = false
+            });
+            return results;
+        }
+
+        var arrayProperty = arrayPropertyElement.EnumerateArray().ToList();
+        if (arrayProperty.Count == 0)
+        {
+            // No property with the given name exists in the test file.
+            results.Add(new EvaluationResult
+            {
+                Condition = false
+            });
+            return results;
+        }
+
+        var nextName = propertyName.Substring(propertyName.IndexOf(PolicyConstants.ArrayMemberReference) + PolicyConstants.ArrayMemberReference.Length);
+
+        if (nextName.Length == 0)
+        {
+            // Process array itself
+            throw new NotImplementedException("Array processing logic not implemented");
+        }
+        else
+        {
+            nextName = nextName.Substring(1);
+            if (nextName.Contains(PolicyConstants.ArrayMemberReference))
+            {
+                // Process nested array
+                foreach (var item in arrayProperty)
+                {
+                    // TODO: Handle nested arrays and results
+                    var result = ExecuteArrayFieldEvaluation(nextName, item, fieldObject, policy, test);
+                    results.AddRange(result);
+                }
+            }
+            else
+            {
+                foreach (var item in arrayProperty)
+                {
+                    // TODO: Handle arrays and results
+                    string? propertyValue = null;
+                    var properties = item.GetProperty(Properties.Name);
+
+                    if (!properties.TryGetProperty(nextName, out var propertyElement))
+                    {
+                        // No property with the given name exists in the test file.
+                        results.Add(new EvaluationResult
+                        {
+                            Condition = false
+                        });
+                        continue;
+                    }
+
+                    propertyValue = propertyElement.GetString();
+                    var result = FieldComparison(policy, nextName, propertyValue);
+                    results.Add(result);
+                }
+            }
+        }
+
+        return results;
     }
 }

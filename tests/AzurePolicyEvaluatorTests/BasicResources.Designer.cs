@@ -66,19 +66,21 @@ namespace AzurePolicyEvaluatorTests {
         ///    &quot;type&quot;: &quot;Microsoft.Network/networkSecurityGroups&quot;,
         ///    &quot;location&quot;: &quot;northeurope&quot;,
         ///    &quot;properties&quot;: {
-        ///        &quot;securityRules&quot;: [
-        ///            {
-        ///                &quot;type&quot;: &quot;Microsoft.Network/networkSecurityGroups/securityRules&quot;,
-        ///                &quot;properties&quot;: {
-        ///                    &quot;protocol&quot;: &quot;*&quot;,
-        ///                    &quot;sourcePortRange&quot;: &quot;*&quot;,
-        ///                    &quot;destinationPortRange&quot;: &quot;22&quot;,
-        ///                    &quot;sourceAddressPrefix&quot;: &quot;*&quot;,
-        ///                    &quot;destinationAdd [rest of string was truncated]&quot;;.
+        ///      &quot;securityRules&quot;: [
+        ///        {
+        ///          &quot;type&quot;: &quot;Microsoft.Network/networkSecurityGroups/securityRules&quot;,
+        ///          &quot;properties&quot;: {
+        ///            &quot;protocol&quot;: &quot;*&quot;,
+        ///            &quot;sourcePortRange&quot;: &quot;*&quot;,
+        ///            &quot;destinationPortRange&quot;: &quot;22&quot;,
+        ///            &quot;sourceAddressPrefix&quot;: &quot;*&quot;,
+        ///            &quot;destinationAddressPrefix&quot;: &quot;10.0.0.4&quot;,
+        ///            &quot;access&quot;: &quot;Allow&quot;,
+        /// [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string NSG_AllowSSH {
+        internal static string NSG_AllowSSHandRDP {
             get {
-                return ResourceManager.GetString("NSG_AllowSSH", resourceCulture);
+                return ResourceManager.GetString("NSG_AllowSSHandRDP", resourceCulture);
             }
         }
         

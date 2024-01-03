@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging.Abstractions;
+using System.Collections.Generic;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 
@@ -83,7 +84,7 @@ public class BasicEvaluatorTests
     {
         // Arrange
         var policy = BasicResources.Policy_Location_List;
-        var test = BasicResources.NSG_AllowSSH;
+        var test = BasicResources.NSG_AllowSSHandRDP;
         var evaluator = new Evaluator(NullLogger<Evaluator>.Instance);
 
         // Act
@@ -94,11 +95,26 @@ public class BasicEvaluatorTests
     }
 
     [Fact]
+    public void ParameterTemplateFunctionTest()
+    {
+        // Arrange
+        var expected = "westus";
+        var evaluator = new Evaluator(NullLogger<Evaluator>.Instance);
+        evaluator._parameters.Add(new Parameter { Name = "location", DefaultValue = "westus" });
+
+        // Act
+        var actual = evaluator.RunTemplateFunctions("[parameters('location')]");
+
+        // Assert
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
     public void NetworkSecurityGroupPolicyTest()
     {
         // Arrange
         var policy = BasicResources.Policy_NSG_DenyPorts;
-        var test = BasicResources.NSG_AllowSSH;
+        var test = BasicResources.NSG_AllowSSHandRDP;
         var evaluator = new Evaluator(NullLogger<Evaluator>.Instance);
 
         // Act
@@ -109,7 +125,7 @@ public class BasicEvaluatorTests
     }
 
     [Fact]
-    public void NetworkSecurityGroupPolicyTest2()
+    public void NetworkSecurityGroupFieldValidationTest()
     {
         // Arrange
         var fieldDocument = JsonDocument.Parse(@"{
@@ -133,6 +149,31 @@ public class BasicEvaluatorTests
                 ""destinationAddressPrefixes"": []
             }
         }");
+
+        var fieldElement = fieldDocument.RootElement.GetProperty("field");
+
+        var evaluator = new Evaluator(NullLogger<Evaluator>.Instance);
+
+        // Act
+        var evaluationResult = evaluator.ExecuteFieldEvaluation(fieldElement, fieldDocument.RootElement, test.RootElement);
+
+        // Assert
+        Assert.True(evaluationResult.Condition);
+    }
+
+
+    [Fact]
+    public void NetworkSecurityGroupArrayFieldValidationTest()
+    {
+        // More information:
+        // https://learn.microsoft.com/en-us/azure/governance/policy/how-to/author-policies-for-arrays#referencing-the-array-members-collection
+
+        // Arrange
+        var fieldDocument = JsonDocument.Parse(@"{
+            ""field"": ""Microsoft.Network/networkSecurityGroups/securityRules[*].destinationAddressPrefix"",
+            ""equals"": ""10.0.0.4""
+        }");
+        var test = JsonDocument.Parse(BasicResources.NSG_AllowSSHandRDP);
 
         var fieldElement = fieldDocument.RootElement.GetProperty("field");
 
