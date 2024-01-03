@@ -1,11 +1,21 @@
 ﻿using AzurePolicyEvaluator;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Console;
 
 Console.WriteLine("Azure Policy Evaluator");
 
 var services = new ServiceCollection();
-services.AddLogging(builder => builder.AddConsole());
+services.AddLogging(builder => {
+    builder.SetMinimumLevel(LogLevel.Trace);
+    builder.AddSimpleConsole(options =>
+    {
+        options.ColorBehavior = LoggerColorBehavior.Enabled;
+        options.IncludeScopes = true;
+        options.SingleLine = true;
+        options.TimestampFormat = "HH:mm:ss ";
+    });
+});
 services.AddSingleton<Evaluator>();
 IServiceProvider serviceProvider = services.BuildServiceProvider();
 

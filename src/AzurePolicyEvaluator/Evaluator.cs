@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -110,6 +111,9 @@ public class Evaluator
 
     internal List<Parameter> ParseParameters(JsonElement parameters)
     {
+        using var scope = _logger.BeginScope("ParseParameters");
+        _logger.LogDebug("Started parsing of parameters");
+
         var parametersList = new List<Parameter>();
         if (parameters.ValueKind == JsonValueKind.Object)
         {
@@ -122,6 +126,8 @@ public class Evaluator
                     Name = parameter.Name,
                     Type = type
                 };
+
+                _logger.LogDebug("Parsing parameter {Name} of type {Type}", parameter.Name, type);
 
                 var hasDefaultValue = parameter.Value.TryGetProperty(PolicyConstants.Parameters.DefaultValue, out var defaultValue);
 
@@ -148,14 +154,31 @@ public class Evaluator
                             parameterObject.DefaultValue = defaultValue.GetBoolean();
                         }
                         break;
+                    case "array":
+                        parameterObject.DefaultValue = new List<string>();
+                        if (hasDefaultValue)
+                        {
+                            parameterObject.DefaultValue = defaultValue.EnumerateArray().Select(o => o.GetString()).ToList();
+                        }
+                        break;
+                    case "object":
+                        parameterObject.DefaultValue = new Dictionary<string, string>();
+                        if (hasDefaultValue)
+                        {
+                            parameterObject.DefaultValue = defaultValue.EnumerateObject().ToDictionary(o => o.Name, o => o.Value.ToString());
+                        }
+                        break;
                     default:
                         throw new NotImplementedException($"Parameter type {type} is not implemented.");
                 }
+
+                _logger.LogDebug("Parsed default value {Value}", parameterObject.DefaultValue);
 
                 parametersList.Add(parameterObject);
             }
         }
 
+        _logger.LogDebug("Parsed {Count} parameters", parametersList.Count);
         return parametersList;
     }
 
@@ -241,7 +264,7 @@ public class Evaluator
             var propertyName = fieldObject.GetString();
             if (!string.IsNullOrEmpty(propertyName))
             {
-                var propertyValue = string.Empty;
+                string? propertyValue;
                 if (propertyName.Contains('/'))
                 {
                     _logger.LogDebug("Property {PropertyName} is resource property", propertyName);
