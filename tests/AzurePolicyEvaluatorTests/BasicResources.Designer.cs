@@ -83,12 +83,32 @@ namespace AzurePolicyEvaluatorTests {
         }
         
         /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
+        ///   Looks up a localized string similar to {
+        ///  &quot;properties&quot;: {
+        ///    &quot;mode&quot;: &quot;Indexed&quot;,
+        ///    &quot;parameters&quot;: {
+        ///      &quot;allowedLocations&quot;: {
+        ///        &quot;type&quot;: &quot;array&quot;,
+        ///        &quot;defaultValue&quot;: [ &quot;westeurope&quot;, &quot;northeurope&quot; ]
+        ///      }
+        ///    },
+        ///    &quot;policyRule&quot;: {
+        ///      &quot;if&quot;: {
+        ///        &quot;not&quot;: {
+        ///          &quot;field&quot;: &quot;location&quot;,
+        ///          &quot;in&quot;: &quot;[parameters(&apos;allowedLocations&apos;)]&quot;
+        ///        }
+        ///      },
+        ///      &quot;then&quot;: {
+        ///        &quot;effect&quot;: &quot;deny&quot;
+        ///      }
+        ///    }
+        ///  }
+        ///}.
         /// </summary>
-        internal static byte[] Policy_Location_List {
+        internal static string Policy_Location_List {
             get {
-                object obj = ResourceManager.GetObject("Policy_Location_List", resourceCulture);
-                return ((byte[])(obj));
+                return ResourceManager.GetString("Policy_Location_List", resourceCulture);
             }
         }
         

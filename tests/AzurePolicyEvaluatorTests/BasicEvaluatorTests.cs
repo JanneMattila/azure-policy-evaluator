@@ -79,6 +79,21 @@ public class BasicEvaluatorTests
     }
 
     [Fact]
+    public void LocationPolicyTest()
+    {
+        // Arrange
+        var policy = BasicResources.Policy_Location_List;
+        var test = BasicResources.NSG_AllowSSH;
+        var evaluator = new Evaluator(NullLogger<Evaluator>.Instance);
+
+        // Act
+        var evaluationResult = evaluator.Evaluate(policy, test);
+
+        // Assert
+        Assert.False(evaluationResult.Condition);
+    }
+
+    [Fact]
     public void NetworkSecurityGroupPolicyTest()
     {
         // Arrange
