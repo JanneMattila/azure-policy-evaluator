@@ -13,6 +13,7 @@ namespace AzurePolicyEvaluator;
 public class Evaluator
 {
     private readonly ILogger<Evaluator> _logger;
+    private List<Parameter> _parameters = [];
 
     public Evaluator(ILogger<Evaluator> logger)
     {
@@ -89,11 +90,73 @@ public class Evaluator
             return result;
         }
 
+        if (policyProperties.TryGetProperty(PolicyConstants.Parameters.Name, out var parameters))
+        {
+            _parameters = ParseParameters(parameters);
+            var effectParameter = _parameters.FirstOrDefault(o => string.Compare(o.Name, PolicyConstants.Effect, true) == 0);
+            if (effectParameter != null &&
+                effectParameter.DefaultValue != null)
+            {
+                result.Effect = effectParameter.DefaultValue.ToString();
+            }
+        }
+
         result = ExecuteEvaluation(PolicyConstants.Properties.If, policyRoot, testDocument.RootElement);
 
         var effect = result.Condition ? result.Effect : "No effect";
         _logger.LogInformation("Policy evaluation finished with {Condition} causing effect {Effect}", result.Condition, effect);
         return result;
+    }
+
+    internal List<Parameter> ParseParameters(JsonElement parameters)
+    {
+        var parametersList = new List<Parameter>();
+        if (parameters.ValueKind == JsonValueKind.Object)
+        {
+            foreach (var parameter in parameters.EnumerateObject())
+            {
+                var typeProperty = parameter.Value.GetProperty(PolicyConstants.Type).GetString();
+                var type = typeProperty != null ? typeProperty.ToLower() : "string";
+                var parameterObject = new Parameter
+                {
+                    Name = parameter.Name,
+                    Type = type
+                };
+
+                var hasDefaultValue = parameter.Value.TryGetProperty(PolicyConstants.Parameters.DefaultValue, out var defaultValue);
+
+                switch (type)
+                {
+                    case "string":
+                        parameterObject.DefaultValue = string.Empty;
+                        if (hasDefaultValue)
+                        {
+                            parameterObject.DefaultValue = defaultValue.GetString();
+                        }
+                        break;
+                    case "int":
+                        parameterObject.DefaultValue = 0;
+                        if (hasDefaultValue)
+                        {
+                            parameterObject.DefaultValue = defaultValue.GetInt32();
+                        }
+                        break;
+                    case "bool":
+                        parameterObject.DefaultValue = 0;
+                        if (hasDefaultValue)
+                        {
+                            parameterObject.DefaultValue = defaultValue.GetBoolean();
+                        }
+                        break;
+                    default:
+                        throw new NotImplementedException($"Parameter type {type} is not implemented.");
+                }
+
+                parametersList.Add(parameterObject);
+            }
+        }
+
+        return parametersList;
     }
 
     internal EvaluationResult ExecuteEvaluation(string name, JsonElement policy, JsonElement test)

@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging.Abstractions;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 
 namespace AzurePolicyEvaluatorTests;
 
@@ -33,6 +34,27 @@ public class BasicEvaluatorTests
 
         // Assert
         Assert.False(evaluationResult.Condition);
+    }
+
+    [Fact]
+    public void ParseParametersTest()
+    {
+        // Arrange
+        using var document = JsonDocument.Parse(BasicResources.Policy_NSG_DenyPorts);
+        var parameters = document.RootElement.GetProperty("properties").GetProperty("parameters");
+        var expectedParameters = 1;
+        var expectedName = "effect";
+        var expectedValue = "Audit";
+
+        var evaluator = new Evaluator(NullLogger<Evaluator>.Instance);
+
+        // Act
+        var parametersList = evaluator.ParseParameters(parameters);
+
+        // Assert
+        Assert.Equal(expectedParameters, parametersList.Count);
+        Assert.Equal(expectedName, parametersList[0].Name);
+        Assert.Equal(expectedValue, parametersList[0].DefaultValue);
     }
 
     [Fact]

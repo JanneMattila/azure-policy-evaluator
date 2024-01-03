@@ -20,7 +20,7 @@ public static class PolicyConstants
 
     public static class Parameters
     {
-        public const string Name = "Parameters";
+        public const string Name = "parameters";
         public const string DefaultValue = "defaultValue";
     }
 
