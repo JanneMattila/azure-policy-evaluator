@@ -83,6 +83,16 @@ namespace AzurePolicyEvaluatorTests {
         }
         
         /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] Policy_Location_List {
+            get {
+                object obj = ResourceManager.GetObject("Policy_Location_List", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to {
         ///    &quot;name&quot;: &quot;8abf7f28-f631-4700-9ff7-26f7e994458a&quot;,
         ///    &quot;type&quot;: &quot;Microsoft.Authorization/policyDefinitions&quot;,

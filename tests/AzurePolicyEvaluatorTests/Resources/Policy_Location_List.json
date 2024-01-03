@@ -1,0 +1,22 @@
+{
+  "properties": {
+    "mode": "Indexed",
+    "parameters": {
+      "allowedLocations": {
+        "type": "array",
+        "defaultValue": [ "westeurope", "northeurope" ]
+      }
+    },
+    "policyRule": {
+      "if": {
+        "not": {
+          "field": "location",
+          "in": "[parameters('allowedLocations')]"
+        }
+      },
+      "then": {
+        "effect": "deny"
+      }
+    }
+  }
+}
