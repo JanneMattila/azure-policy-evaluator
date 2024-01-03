@@ -62,6 +62,28 @@ namespace AzurePolicyEvaluatorTests {
         
         /// <summary>
         ///   Looks up a localized string similar to {
+        ///    &quot;name&quot;: &quot;nsg-app&quot;,
+        ///    &quot;type&quot;: &quot;Microsoft.Network/networkSecurityGroups&quot;,
+        ///    &quot;location&quot;: &quot;northeurope&quot;,
+        ///    &quot;properties&quot;: {
+        ///        &quot;securityRules&quot;: [
+        ///            {
+        ///                &quot;type&quot;: &quot;Microsoft.Network/networkSecurityGroups/securityRules&quot;,
+        ///                &quot;properties&quot;: {
+        ///                    &quot;protocol&quot;: &quot;*&quot;,
+        ///                    &quot;sourcePortRange&quot;: &quot;*&quot;,
+        ///                    &quot;destinationPortRange&quot;: &quot;22&quot;,
+        ///                    &quot;sourceAddressPrefix&quot;: &quot;*&quot;,
+        ///                    &quot;destinationAdd [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string NSG_AllowSSH {
+            get {
+                return ResourceManager.GetString("NSG_AllowSSH", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {
         ///    &quot;name&quot;: &quot;8abf7f28-f631-4700-9ff7-26f7e994458a&quot;,
         ///    &quot;type&quot;: &quot;Microsoft.Authorization/policyDefinitions&quot;,
         ///    &quot;properties&quot;: {
@@ -78,31 +100,9 @@ namespace AzurePolicyEvaluatorTests {
         ///                &quot;metadata&quot;: {
         ///                    &quot;displayName&quot;: &quot;Effec [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string PolicyNetworkSecurityGroup1 {
+        internal static string Policy_NSG_DenyPorts {
             get {
-                return ResourceManager.GetString("PolicyNetworkSecurityGroup1", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to {
-        ///    &quot;name&quot;: &quot;nsg-app&quot;,
-        ///    &quot;type&quot;: &quot;Microsoft.Network/networkSecurityGroups&quot;,
-        ///    &quot;location&quot;: &quot;northeurope&quot;,
-        ///    &quot;properties&quot;: {
-        ///        &quot;securityRules&quot;: [
-        ///            {
-        ///                &quot;type&quot;: &quot;Microsoft.Network/networkSecurityGroups/securityRules&quot;,
-        ///                &quot;properties&quot;: {
-        ///                    &quot;protocol&quot;: &quot;*&quot;,
-        ///                    &quot;sourcePortRange&quot;: &quot;*&quot;,
-        ///                    &quot;destinationPortRange&quot;: &quot;22&quot;,
-        ///                    &quot;sourceAddressPrefix&quot;: &quot;*&quot;,
-        ///                    &quot;destinationAdd [rest of string was truncated]&quot;;.
-        /// </summary>
-        internal static string TestNetworkSecurityGroup1 {
-            get {
-                return ResourceManager.GetString("TestNetworkSecurityGroup1", resourceCulture);
+                return ResourceManager.GetString("Policy_NSG_DenyPorts", resourceCulture);
             }
         }
     }

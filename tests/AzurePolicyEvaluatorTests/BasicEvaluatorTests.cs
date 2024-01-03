@@ -39,8 +39,8 @@ public class BasicEvaluatorTests
     public void NetworkSecurityGroupPolicyTest()
     {
         // Arrange
-        var policy = BasicResources.PolicyNetworkSecurityGroup1;
-        var test = BasicResources.TestNetworkSecurityGroup1;
+        var policy = BasicResources.Policy_NSG_DenyPorts;
+        var test = BasicResources.NSG_AllowSSH;
         var evaluator = new Evaluator(NullLogger<Evaluator>.Instance);
 
         // Act
