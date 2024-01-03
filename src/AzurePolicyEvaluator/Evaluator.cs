@@ -97,8 +97,8 @@ public class Evaluator
 
         result = ExecuteEvaluation(PolicyConstants.Properties.If, policyRoot, testDocument.RootElement);
 
-        var effect = result.Condition ? result.Effect : "No effect";
-        _logger.LogInformation("Policy evaluation finished with {Condition} causing effect {Effect}", result.Condition, effect);
+        result.Effect = result.Condition ? result.Effect : PolicyConstants.Effects.None;
+        _logger.LogInformation("Policy evaluation finished with {Condition} causing effect {Effect}", result.Condition, result.Effect);
         return result;
     }
 
@@ -181,7 +181,41 @@ public class Evaluator
 
         if (policy.ValueKind == JsonValueKind.Object)
         {
-            if (policy.TryGetProperty(PolicyConstants.Field, out var fieldObject))
+            if (policy.TryGetProperty(LogicalOperators.Not, out var notObject))
+            {
+                var notChildren = policy.EnumerateObject();
+                if (notChildren.Count() != 1)
+                {
+                    var error = $"Logical operator {LogicalOperators.Not} must have exactly one child.";
+                    _logger.LogError(error);
+                    result.Details = error;
+                    return result;
+                }
+                var property = notChildren.First();
+                result = ExecuteEvaluation(property.Name, property.Value, test);
+                result.Condition = !result.Condition;
+                return result;
+            }
+            else if (policy.TryGetProperty(PolicyConstants.Count, out var countObject))
+            {
+                if (!countObject.TryGetProperty(PolicyConstants.Where, out var fieldObject))
+                {
+                    var error = $"Count expression must have 'field' child element.";
+                    _logger.LogError(error);
+                    result.Details = error;
+                    return result;
+                }
+                if (!countObject.TryGetProperty(PolicyConstants.Where, out var whereObject))
+                {
+                    var error = $"Count expression must have 'where' child element.";
+                    _logger.LogError(error);
+                    result.Details = error;
+                    return result;
+                }
+                result = ExecuteFieldEvaluation(whereObject, policy, test);
+                return result;
+            }
+            else if (policy.TryGetProperty(PolicyConstants.Field, out var fieldObject))
             {
                 result = ExecuteFieldEvaluation(fieldObject, policy, test);
                 return result;
@@ -209,17 +243,6 @@ public class Evaluator
 
             switch (name)
             {
-                case LogicalOperators.Not:
-                    if (results.Count != 1)
-                    {
-                        var error = $"Logical operator {name} must have exactly one child.";
-                        _logger.LogError(error);
-                        return result;
-                    }
-
-                    var firstResult = results.First();
-                    result.Condition = !firstResult.Condition;
-                    break;
                 case LogicalOperators.AnyOf:
                     result.Condition = results.Any(r => r.Condition);
                     if (!result.Condition)
@@ -282,6 +305,7 @@ public class Evaluator
                         // From:https://learn.microsoft.com/en-us/azure/governance/policy/how-to/author-policies-for-arrays#referencing-the-array-members-collection
                         // -> AllOf: The condition is true if all of the array members meet the condition.
                         result.Condition = results.All(o => o.Condition);
+                        return result;
                     }
                     else
                     {

@@ -57,11 +57,14 @@ public static class PolicyConstants
     {
         public const string Audit = "Audit";
         public const string Deny = "Deny";
+        public const string None = "None";
     }
 
     public const string Then = "then";
     public const string Effect = "effect";
     public const string Field = "field";
+    public const string Count = "count";
+    public const string Where = "where";
     public const string Type = "type";
     public const string ArrayMemberReference = "[*]";
 }

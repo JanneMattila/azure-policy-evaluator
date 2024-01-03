@@ -83,6 +83,7 @@ public class BasicEvaluatorTests
     public void LocationPolicyTest()
     {
         // Arrange
+        var expected = PolicyConstants.Effects.None;
         var policy = BasicResources.Policy_Location_List;
         var test = BasicResources.NSG_AllowSSHandRDP;
         var evaluator = new Evaluator(NullLogger<Evaluator>.Instance);
@@ -92,6 +93,7 @@ public class BasicEvaluatorTests
 
         // Assert
         Assert.False(evaluationResult.Condition);
+        Assert.Equal(expected, evaluationResult.Effect);
     }
 
     [Fact]
@@ -161,13 +163,9 @@ public class BasicEvaluatorTests
         Assert.True(evaluationResult.Condition);
     }
 
-
     [Fact]
     public void NetworkSecurityGroupArrayFieldValidationTest()
     {
-        // More information:
-        // https://learn.microsoft.com/en-us/azure/governance/policy/how-to/author-policies-for-arrays#referencing-the-array-members-collection
-
         // Arrange
         var fieldDocument = JsonDocument.Parse(@"{
             ""field"": ""Microsoft.Network/networkSecurityGroups/securityRules[*].destinationAddressPrefix"",
