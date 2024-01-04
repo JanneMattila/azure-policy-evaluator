@@ -215,6 +215,7 @@ public class Evaluator
                 if (hasWhereProperty)
                 {
                     var results = ExecuteEvaluation(string.Empty, whereObject, test);
+                    result.Condition = results.Condition;
                     result.Count = results.Count;
                 }
 
