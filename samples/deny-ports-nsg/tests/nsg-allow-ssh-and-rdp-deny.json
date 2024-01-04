@@ -9,7 +9,7 @@
                 "properties": {
                     "protocol": "*",
                     "sourcePortRange": "*",
-                    "destinationPortRange": "23",
+                    "destinationPortRange": "22",
                     "sourceAddressPrefix": "*",
                     "destinationAddressPrefix": "10.0.0.4",
                     "access": "Allow",
@@ -26,7 +26,7 @@
                 "properties": {
                     "protocol": "*",
                     "sourcePortRange": "*",
-                    "destinationPortRange": "3390",
+                    "destinationPortRange": "33890",
                     "sourceAddressPrefix": "*",
                     "destinationAddressPrefix": "10.0.0.4",
                     "access": "Allow",

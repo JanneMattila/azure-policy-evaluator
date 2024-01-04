@@ -96,7 +96,7 @@ public class Evaluator
             }
         }
 
-        result = ExecuteEvaluation(PolicyConstants.Properties.If, policyRoot, testDocument.RootElement);
+        result = ExecuteEvaluation(1, policyRoot, testDocument.RootElement);
 
         result.Effect = result.Condition ? result.Effect : PolicyConstants.Effects.None;
         _logger.LogInformation("Policy evaluation finished with {Condition} causing effect {Effect}", result.Condition, result.Effect);
@@ -176,30 +176,30 @@ public class Evaluator
         return parametersList;
     }
 
-    internal EvaluationResult ExecuteEvaluation(string name, JsonElement policy, JsonElement test)
+    internal EvaluationResult ExecuteEvaluation(int level, JsonElement policy, JsonElement test)
     {
+        using var scope = _logger.BeginScope(level);
+        _logger.LogDebug("Started evaluation");
+
         var result = new EvaluationResult();
 
         if (policy.ValueKind == JsonValueKind.Object)
         {
             if (policy.TryGetProperty(LogicalOperators.Not, out var notObject))
             {
-                var notChildren = policy.EnumerateObject();
-                if (notChildren.Count() != 1)
-                {
-                    var error = $"Logical operator {LogicalOperators.Not} must have exactly one child.";
-                    _logger.LogError(error);
-                    result.Details = error;
-                    return result;
-                }
-                var property = notChildren.First();
-                result = ExecuteEvaluation(property.Name, property.Value, test);
+                _logger.LogDebug("'not' started");
+
+                result = ExecuteEvaluation(level + 1, notObject, test);
                 result.Condition = !result.Condition;
+
+                _logger.LogDebug($"'not' return condition {result.Condition}");
                 return result;
             }
             else if (policy.TryGetProperty(LogicalOperators.AnyOf, out var anyOfObject))
             {
-                var anyOfChildren = policy.EnumerateObject();
+                _logger.LogDebug("'anyOf' started");
+
+                var anyOfChildren = anyOfObject.EnumerateArray();
                 if (anyOfChildren.Count() == 0)
                 {
                     var error = $"Logical operator {LogicalOperators.AnyOf} must have child elements.";
@@ -210,17 +210,22 @@ public class Evaluator
 
                 foreach (var property in anyOfChildren)
                 {
-                    result = ExecuteEvaluation(property.Name, property.Value, test);
+                    result = ExecuteEvaluation(level + 1, property, test);
                     if (result.Condition)
                     {
-                        return result;
+                        break;
                     }
                 }
+
+                result.Count = result.Condition ? result.Count : 0;
+                _logger.LogDebug($"'anyOf' return condition {result.Condition}");
                 return result;
             }
             else if (policy.TryGetProperty(LogicalOperators.AllOf, out var allOfObject))
             {
-                var allOfChildren = policy.EnumerateObject();
+                _logger.LogDebug("'allOf' started");
+
+                var allOfChildren = allOfObject.EnumerateArray();
                 if (allOfChildren.Count() == 0)
                 {
                     var error = $"Logical operator {LogicalOperators.AllOf} must have child elements.";
@@ -232,13 +237,19 @@ public class Evaluator
                 var results = new List<EvaluationResult>();
                 foreach (var property in allOfChildren)
                 {
-                    result = ExecuteEvaluation(property.Name, property.Value, test);
+                    result = ExecuteEvaluation(level + 1, property, test);
+                    results.Add(result);
                 }
                 result.Condition = results.All(o => o.Condition);
+                result.Count = result.Condition ? results.Count : 0;
+
+                _logger.LogDebug($"'allOf' return condition {result.Condition}");
                 return result;
             }
             else if (policy.TryGetProperty(PolicyConstants.Count, out var countObject))
             {
+                _logger.LogDebug("'count' started");
+
                 // More information:
                 // https://learn.microsoft.com/en-us/azure/governance/policy/concepts/definition-structure#field-count
                 if (!countObject.TryGetProperty(PolicyConstants.Field, out var fieldObject))
@@ -254,68 +265,34 @@ public class Evaluator
                 result = ExecuteFieldEvaluation(fieldObject, policy, test);
                 if (hasWhereProperty)
                 {
-                    var results = ExecuteEvaluation(string.Empty, whereObject, test);
+                    var results = ExecuteEvaluation(level + 1, whereObject, test);
                     result.Condition = results.Condition;
                     result.Count = result.Condition ? results.Count : 0;
                 }
 
                 result = ExecuteCountEvaluation(policy, result);
+
+                _logger.LogDebug($"'count' return condition {result.Condition}");
                 return result;
             }
             else if (policy.TryGetProperty(PolicyConstants.Field, out var fieldObject))
             {
+                _logger.LogDebug("'field' started");
+
                 result = ExecuteFieldEvaluation(fieldObject, policy, test);
+
+                _logger.LogDebug($"'field' return condition {result.Condition}");
                 return result;
             }
             else
             {
-                foreach (var property in policy.EnumerateObject())
-                {
-                    result = ExecuteEvaluation(property.Name, property.Value, test);
-                    if (!result.Condition)
-                    {
-                        return result;
-                    }
-                }
+                throw new NotImplementedException($"Could not find element to process.");
             }
         }
-        else if (policy.ValueKind == JsonValueKind.Array)
+        else
         {
-            var results = new List<EvaluationResult>();
-            foreach (var array in policy.EnumerateArray())
-            {
-                result = ExecuteEvaluation(string.Empty, array, test);
-                results.Add(result);
-            }
-
-            switch (name)
-            {
-                case LogicalOperators.AnyOf:
-                    result.Condition = results.Any(r => r.Condition);
-                    if (!result.Condition)
-                    {
-                        var failedResult = results.Where(r => !r.Condition).FirstOrDefault();
-                        result.Result = failedResult?.Result ?? string.Empty;
-                        result.Details = failedResult?.Details ?? string.Empty;
-                    }
-                    break;
-                case LogicalOperators.AllOf:
-                    result.Condition = results.All(r => r.Condition);
-                    if (!result.Condition)
-                    {
-                        var failedResult = results.Where(r => !r.Condition).FirstOrDefault();
-                        result.Result = failedResult?.Result ?? string.Empty;
-                        result.Details = failedResult?.Details ?? string.Empty;
-                    }
-                    break;
-                default:
-                    throw new NotImplementedException($"Logical operator {name} is not implemented.");
-            }
-
-            _logger.LogDebug("Logical operator {LogicalOperator} updated condition to {Condition}", name, result.Condition);
+            throw new NotImplementedException($"Policy for element  kind {policy.ValueKind} is not implemented.");
         }
-
-        return result;
     }
 
     internal EvaluationResult ExecuteCountEvaluation(JsonElement countObject, EvaluationResult childResult)
@@ -414,9 +391,8 @@ public class Evaluator
                         var results = ExecuteArrayFieldEvaluation(propertyName, properties, fieldObject, policy, test);
 
                         // From:https://learn.microsoft.com/en-us/azure/governance/policy/how-to/author-policies-for-arrays#referencing-the-array-members-collection
-                        // -> AllOf: The condition is true if all of the array members meet the condition.
-                        result.Condition = results.All(o => o.Condition);
-                        result.Count = results.Count;
+                        result.Condition = results.Any(o => o.Condition);
+                        result.Count = results.Count(o => o.Condition);
                         return result;
                     }
                     else
