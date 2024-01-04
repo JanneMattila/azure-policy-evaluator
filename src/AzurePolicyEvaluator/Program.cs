@@ -4,22 +4,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
 using System.CommandLine;
 
-var services = new ServiceCollection();
-services.AddLogging(builder => {
-    builder.SetMinimumLevel(LogLevel.Trace);
-    builder.AddSimpleConsole(options =>
-    {
-        options.ColorBehavior = LoggerColorBehavior.Enabled;
-        options.IncludeScopes = true;
-        options.SingleLine = true;
-        options.TimestampFormat = "HH:mm:ss ";
-    });
-});
-services.AddSingleton<Evaluator>();
-IServiceProvider serviceProvider = services.BuildServiceProvider();
-
-using var loggerFactory = serviceProvider.GetService<ILoggerFactory>();
-var logger = loggerFactory.CreateLogger<Program>();
+IServiceProvider serviceProvider;
+ILogger<Program> logger;
 
 var policyOption = new Option<FileInfo?>("--policy") { Description = "Policy file to evaluate" };
 policyOption.AddAlias("-p");
@@ -29,6 +15,15 @@ testOption.AddAlias("-t");
 
 var watchOption = new Option<bool>("--watch") { Description = "Watch current folder for policy changes" };
 watchOption.AddAlias("-w");
+
+var loggingOption = new Option<string>(
+    "--logging",
+    "Logging verbosity. Defaults to 'info'.")
+        .FromAmong(
+            "trace",
+            "debug",
+            "info");
+loggingOption.SetDefaultValue("info");
 
 const string POLICY_FILE_NAME = "azurepolicy";
 const string EXTENSION = "json";
@@ -48,11 +43,37 @@ https://github.com/JanneMattila/azure-policy-evaluator")
 {
     policyOption,
     testOption,
-    watchOption
+    watchOption,
+    loggingOption
 };
 
-rootCommand.SetHandler(async (policyFile, testFile, watch) =>
+rootCommand.SetHandler(async (policyFile, testFile, watch, logging) =>
 {
+    var loggingLevel = logging switch
+    {
+        "trace" => LogLevel.Trace,
+        "debug" => LogLevel.Debug,
+        "info" => LogLevel.Information,
+        _ => LogLevel.Information
+    };
+
+    var services = new ServiceCollection();
+    services.AddLogging(builder => {
+        builder.SetMinimumLevel(loggingLevel);
+        builder.AddSimpleConsole(options =>
+        {
+            options.ColorBehavior = LoggerColorBehavior.Enabled;
+            options.IncludeScopes = true;
+            options.SingleLine = true;
+            options.TimestampFormat = "HH:mm:ss ";
+        });
+    });
+    services.AddSingleton<Evaluator>();
+    serviceProvider = services.BuildServiceProvider();
+
+    using var loggerFactory = serviceProvider.GetService<ILoggerFactory>();
+    logger = loggerFactory.CreateLogger<Program>();
+
     if (watch)
     {
         logger.LogInformation("Watching for policy changes...");
@@ -84,7 +105,7 @@ rootCommand.SetHandler(async (policyFile, testFile, watch) =>
         Console.WriteLine("Try '--help' for more information.");
     }
 
-}, policyOption, testOption, watchOption);
+}, policyOption, testOption, watchOption, loggingOption);
 
 await rootCommand.InvokeAsync(args);
 
@@ -157,8 +178,7 @@ void PolicyFilesChanged(object sender, FileSystemEventArgs e)
         logger.LogInformation($"Policy '{Path.GetFileNameWithoutExtension(policyFilename)}' with test '{Path.GetFileNameWithoutExtension(testFile)}' resulted to '{actual}', '{expected}' was expected -> {result}");
     }
 };
-
-static string SafeFileRead(string file)
+string SafeFileRead(string file)
 {
     for (int i = 0; i < 10; i++)
     {
@@ -170,7 +190,7 @@ static string SafeFileRead(string file)
         {
         }
 
-        Console.WriteLine($"Could not read file '{file}'. Retrying {i + 1}...");
+        logger.LogDebug($"Could not read file '{file}'. Retrying {i + 1}...");
         Thread.Sleep(500);
     }
     return string.Empty;
