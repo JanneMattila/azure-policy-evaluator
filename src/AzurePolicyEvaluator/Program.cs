@@ -2,8 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
-
-Console.WriteLine("Azure Policy Evaluator");
+using System.CommandLine;
 
 var services = new ServiceCollection();
 services.AddLogging(builder => {
@@ -19,14 +18,45 @@ services.AddLogging(builder => {
 services.AddSingleton<Evaluator>();
 IServiceProvider serviceProvider = services.BuildServiceProvider();
 
-var evaluator = serviceProvider.GetRequiredService<Evaluator>();
+var policyOption = new Option<FileInfo?>("--policy") { Description = "Policy file to evaluate" };
+policyOption.AddAlias("-p");
 
-var policyFile = args[0];
-var testFile = args[1];
+var testOption = new Option<FileInfo?>("--test") { Description = "Test file to use in evaluation" };
+testOption.AddAlias("-t");
 
-var policy = File.ReadAllText(policyFile);
-var test = File.ReadAllText(testFile);
+var watchOption = new Option<bool>("--watch") { Description = "Watch current folder for policy changes" };
+watchOption.AddAlias("-w");
 
-var evaluationResult = evaluator.Evaluate(policy, test);
+var rootCommand = new RootCommand("Azure Policy Evaluator")
+{
+    policyOption,
+    testOption,
+    watchOption
+};
 
-Console.WriteLine($"Policy {Path.GetFileNameWithoutExtension(policyFile)} with test {Path.GetFileNameWithoutExtension(testFile)} resulted to {(evaluationResult.Condition ? evaluationResult.Effect : "No effect")}");
+rootCommand.SetHandler((policyFile, testFile, watch) =>
+{
+    if (watch)
+    {
+        Console.WriteLine("Watching for policy changes...");
+    }
+    else if (policyFile != null && testFile != null &&
+             policyFile.Exists && testFile.Exists)
+    {
+        var policy = File.ReadAllText(policyFile.FullName);
+        var test = File.ReadAllText(testFile.FullName);
+
+        var evaluator = serviceProvider.GetRequiredService<Evaluator>();
+        var evaluationResult = evaluator.Evaluate(policy, test);
+
+        Console.WriteLine($"Policy {Path.GetFileNameWithoutExtension(policyFile.Name)} with test {Path.GetFileNameWithoutExtension(testFile.Name)} resulted to {(evaluationResult.Condition ? evaluationResult.Effect : PolicyConstants.Effects.None)}");
+    }
+    else
+    {
+        Console.WriteLine("Required arguments missing.");
+        Console.WriteLine("Try '--help' for more information.");
+    }
+
+}, policyOption, testOption, watchOption);
+
+await rootCommand.InvokeAsync(args);

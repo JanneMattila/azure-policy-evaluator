@@ -1,8 +1,7 @@
 {
   "profiles": {
     "AzurePolicyEvaluator": {
-      "commandName": "Project",
-      "commandLineArgs": "..\\..\\..\\..\\..\\samples\\deny-ports-nsg\\azurepolicy.json ..\\..\\..\\..\\..\\samples\\deny-ports-nsg\\deny\\nsg-full-allow-port-22.json"
+      "commandName": "Project"
     }
   }
 }
