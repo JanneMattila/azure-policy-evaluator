@@ -197,6 +197,46 @@ public class Evaluator
                 result.Condition = !result.Condition;
                 return result;
             }
+            else if (policy.TryGetProperty(LogicalOperators.AnyOf, out var anyOfObject))
+            {
+                var anyOfChildren = policy.EnumerateObject();
+                if (anyOfChildren.Count() == 0)
+                {
+                    var error = $"Logical operator {LogicalOperators.AnyOf} must have child elements.";
+                    _logger.LogError(error);
+                    result.Details = error;
+                    return result;
+                }
+
+                foreach (var property in anyOfChildren)
+                {
+                    result = ExecuteEvaluation(property.Name, property.Value, test);
+                    if (result.Condition)
+                    {
+                        return result;
+                    }
+                }
+                return result;
+            }
+            else if (policy.TryGetProperty(LogicalOperators.AllOf, out var allOfObject))
+            {
+                var allOfChildren = policy.EnumerateObject();
+                if (allOfChildren.Count() == 0)
+                {
+                    var error = $"Logical operator {LogicalOperators.AllOf} must have child elements.";
+                    _logger.LogError(error);
+                    result.Details = error;
+                    return result;
+                }
+
+                var results = new List<EvaluationResult>();
+                foreach (var property in allOfChildren)
+                {
+                    result = ExecuteEvaluation(property.Name, property.Value, test);
+                }
+                result.Condition = results.All(o => o.Condition);
+                return result;
+            }
             else if (policy.TryGetProperty(PolicyConstants.Count, out var countObject))
             {
                 // More information:
@@ -216,7 +256,7 @@ public class Evaluator
                 {
                     var results = ExecuteEvaluation(string.Empty, whereObject, test);
                     result.Condition = results.Condition;
-                    result.Count = results.Count;
+                    result.Count = result.Condition ? results.Count : 0;
                 }
 
                 result = ExecuteCountEvaluation(policy, result);

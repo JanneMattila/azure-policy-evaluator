@@ -115,6 +115,7 @@ public class BasicEvaluatorTests
     public void NetworkSecurityGroupPolicyTest()
     {
         // Arrange
+        var expected = PolicyConstants.Effects.Deny;
         var policy = BasicResources.Policy_NSG_DenyPorts;
         var test = BasicResources.NSG_AllowSSHandRDP;
         var evaluator = new Evaluator(NullLogger<Evaluator>.Instance);
@@ -124,6 +125,7 @@ public class BasicEvaluatorTests
 
         // Assert
         Assert.True(evaluationResult.Condition);
+        Assert.Equal(expected, evaluationResult.Effect);
     }
 
     [Fact]
