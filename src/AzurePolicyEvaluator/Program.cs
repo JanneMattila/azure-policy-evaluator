@@ -28,7 +28,7 @@ var watchOption = new Option<bool>("--watch") { Description = "Watch current fol
 watchOption.AddAlias("-w");
 
 const string POLICY_FILE_NAME = "azurepolicy";
-const string EXTENSION = ".json";
+const string EXTENSION = "json";
 
 var rootFolder = Directory.GetCurrentDirectory();
 
@@ -61,7 +61,7 @@ rootCommand.SetHandler(async (policyFile, testFile, watch) =>
         var evaluator = serviceProvider.GetRequiredService<Evaluator>();
         var evaluationResult = evaluator.Evaluate(policy, test);
 
-        Console.WriteLine($"Policy {Path.GetFileNameWithoutExtension(policyFile.Name)} with test {Path.GetFileNameWithoutExtension(testFile.Name)} resulted to {(evaluationResult.Condition ? evaluationResult.Effect : PolicyConstants.Effects.None)}");
+        Console.WriteLine($"Policy '{Path.GetFileNameWithoutExtension(policyFile.Name)}' with test '{Path.GetFileNameWithoutExtension(testFile.Name)}' resulted to '{(evaluationResult.Condition ? evaluationResult.Effect : PolicyConstants.Effects.None)}'");
     }
     else
     {
@@ -76,7 +76,6 @@ await rootCommand.InvokeAsync(args);
 
 void PolicyFilesChanged(object sender, FileSystemEventArgs e)
 {
-    Console.WriteLine($"Change: {e.ChangeType} {e.Name}");
     var policyFilename = e.FullPath;
     List<string> testFiles = [];
     if (Path.GetFileNameWithoutExtension(e.Name) == POLICY_FILE_NAME)
@@ -98,7 +97,7 @@ void PolicyFilesChanged(object sender, FileSystemEventArgs e)
         while (directory.FullName.Length >= rootFolder.Length)
         {
             Console.WriteLine($"Looking for policy file in {directory.FullName}...");
-            policyFile = Directory.GetFiles(directory.FullName, $"{POLICY_FILE_NAME}{EXTENSION}").FirstOrDefault();
+            policyFile = Directory.GetFiles(directory.FullName, $"{POLICY_FILE_NAME}.{EXTENSION}").FirstOrDefault();
             if (policyFile != null)
             {
                 policyFilename = policyFile;
@@ -125,7 +124,7 @@ void PolicyFilesChanged(object sender, FileSystemEventArgs e)
         var evaluator = serviceProvider.GetRequiredService<Evaluator>();
         var evaluationResult = evaluator.Evaluate(policy, test);
 
-        Console.WriteLine($"Policy {Path.GetFileNameWithoutExtension(e.Name)} with test {Path.GetFileNameWithoutExtension(testFile)} resulted to {(evaluationResult.Condition ? evaluationResult.Effect : PolicyConstants.Effects.None)}");
+        Console.WriteLine($"Policy '{Path.GetFileNameWithoutExtension(policyFilename)}' with test '{Path.GetFileNameWithoutExtension(testFile)}' resulted to '{(evaluationResult.Condition ? evaluationResult.Effect : PolicyConstants.Effects.None)}'");
     }
 };
 
