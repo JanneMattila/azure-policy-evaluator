@@ -188,6 +188,62 @@ Example policy to prevent inbound traffic on defined ports
 }
 ```
 
+Now we can run our tool to evaluate the policy against the resource:
+
+```console
+$ ape -p azurepolicy.json -t nsg.json
+
+Policy 'azurepolicy' with test 'nsg' resulted to 'Deny'
+```
+
+See demo in action:
+
+TBA
+
+## Limitations
+
+As this is just an **experiment**, there are many limitations (list is not exhaustive):
+
+- Most of the [template functions](https://learn.microsoft.com/en-us/azure/azure-resource-manager/templates/template-functions) are not implemented
+  - `parameters` is implemented
+- Most of the [data types](https://learn.microsoft.com/en-us/azure/azure-resource-manager/templates/data-types) are not implemented
+  - `string`, `int` and `bool` are implemented
+- Most of the [policy conditions](https://learn.microsoft.com/en-us/azure/governance/policy/concepts/definition-structure#conditions) are not implemented
+  - `field`, `count`, `in`, `notIn`, `allOf`, `anyOf`, `not`, `equals`, `notEquals`, `greater`, `greaterOrEquals`, `less`, `lessOrEquals` are implemented _at least partially_
+- [Aliases](https://learn.microsoft.com/en-us/azure/governance/policy/concepts/definition-structure#aliases) are not implemented
+  - Only `[*]` array alias is implemented
+
+## Usage
+
+Install the tool:
+
+```powershell
+# TO BE ADDED
+```
+
+```console
+$ ape --help
+
+Description:
+  Azure Policy Evaluator
+
+Usage:
+  ape [options]
+
+Options:
+  -p, --policy <policy>  Policy file to evaluate
+  -t, --test <test>      Test file to use in evaluation
+  -w, --watch            Watch current folder for policy changes
+  --version              Show version information
+  -?, -h, --help         Show help and usage information
+```
+
+Most common usage is to navigate to the policy folder and then execute:
+
+```powershell
+ape -w
+```
+
 ## Links
 
 [Azure Policy Samples](https://github.com/Azure/azure-policy/)
