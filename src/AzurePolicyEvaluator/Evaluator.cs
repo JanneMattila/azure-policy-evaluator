@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using System.Text.Json;
 using static AzurePolicyEvaluator.PolicyConstants;
+using System.Linq;
 
 namespace AzurePolicyEvaluator;
 
@@ -198,21 +199,26 @@ public class Evaluator
             }
             else if (policy.TryGetProperty(PolicyConstants.Count, out var countObject))
             {
-                if (!countObject.TryGetProperty(PolicyConstants.Where, out var fieldObject))
+                // More information:
+                // https://learn.microsoft.com/en-us/azure/governance/policy/concepts/definition-structure#field-count
+                if (!countObject.TryGetProperty(PolicyConstants.Field, out var fieldObject))
                 {
                     var error = $"Count expression must have 'field' child element.";
                     _logger.LogError(error);
                     result.Details = error;
                     return result;
                 }
-                if (!countObject.TryGetProperty(PolicyConstants.Where, out var whereObject))
+
+                var hasWhereProperty = countObject.TryGetProperty(PolicyConstants.Where, out var whereObject);
+
+                result = ExecuteFieldEvaluation(fieldObject, policy, test);
+                if (hasWhereProperty)
                 {
-                    var error = $"Count expression must have 'where' child element.";
-                    _logger.LogError(error);
-                    result.Details = error;
-                    return result;
+                    var results = ExecuteEvaluation(string.Empty, whereObject, test);
+                    result.Count = results.Count;
                 }
-                result = ExecuteFieldEvaluation(whereObject, policy, test);
+
+                result = ExecuteCountEvaluation(policy, result);
                 return result;
             }
             else if (policy.TryGetProperty(PolicyConstants.Field, out var fieldObject))
@@ -271,6 +277,70 @@ public class Evaluator
         return result;
     }
 
+    internal EvaluationResult ExecuteCountEvaluation(JsonElement countObject, EvaluationResult childResult)
+    {
+        EvaluationResult result = new();
+        if (countObject.TryGetProperty(Conditions.Greater, out var greaterElement))
+        {
+            if (greaterElement.ValueKind != JsonValueKind.Number)
+            {
+                var error = $"Count expression 'greater' must be number value.";
+                _logger.LogError(error);
+                result.Details = error;
+                return result;
+            }
+            var greaterValue = greaterElement.GetInt32();
+            result.Condition = childResult.Count > greaterValue;
+            _logger.LogDebug("Child count {Count} \"greater\" {Value} is {Condition}", childResult.Count, greaterValue, result.Condition);
+        }
+        else if (countObject.TryGetProperty(Conditions.GreaterOrEquals, out var greaterOrEqualsElement))
+        {
+            if (greaterOrEqualsElement.ValueKind != JsonValueKind.Number)
+            {
+                var error = $"Count expression 'greaterOrEquals' must be number value.";
+                _logger.LogError(error);
+                result.Details = error;
+                return result;
+            }
+            var greaterOrEqualsValue = greaterOrEqualsElement.GetInt32();
+            result.Condition = childResult.Count >= greaterOrEqualsValue;
+            _logger.LogDebug("Child count {Count} \"greaterOrEquals\" {Value} is {Condition}", childResult.Count, greaterOrEqualsValue, result.Condition);
+        }
+        else if (countObject.TryGetProperty(Conditions.Less, out var lessElement))
+        {
+            if (lessElement.ValueKind != JsonValueKind.Number)
+            {
+                var error = $"Count expression 'less' must be number value.";
+                _logger.LogError(error);
+                result.Details = error;
+                return result;
+            }
+            var lessValue = lessElement.GetInt32();
+            result.Condition = childResult.Count < lessValue;
+            _logger.LogDebug("Child count {Count} \"less\" {Value} is {Condition}", childResult.Count, lessValue, result.Condition);
+        }
+        else if (countObject.TryGetProperty(Conditions.LessOrEquals, out var lessOrEqualsElement))
+        {
+            if (lessOrEqualsElement.ValueKind != JsonValueKind.Number)
+            {
+                var error = $"Count expression 'lessOrEquals' must be number value.";
+                _logger.LogError(error);
+                result.Details = error;
+                return result;
+            }
+            var lessOrEqualsValue = lessOrEqualsElement.GetInt32();
+            result.Condition = childResult.Count <= lessOrEqualsValue;
+            _logger.LogDebug("Child count {Count} \"lessOrEquals\" {Value} is {Condition}", childResult.Count, lessOrEqualsValue, result.Condition);
+        }
+        else
+        {
+            var error = $"Unknown count condition operator.";
+            _logger.LogError(error);
+            result.Details = error;
+        }
+        return result;
+    }
+
     internal EvaluationResult ExecuteFieldEvaluation(JsonElement fieldObject, JsonElement policy, JsonElement test)
     {
         var result = new EvaluationResult();
@@ -305,6 +375,7 @@ public class Evaluator
                         // From:https://learn.microsoft.com/en-us/azure/governance/policy/how-to/author-policies-for-arrays#referencing-the-array-members-collection
                         // -> AllOf: The condition is true if all of the array members meet the condition.
                         result.Condition = results.All(o => o.Condition);
+                        result.Count = results.Count;
                         return result;
                     }
                     else
@@ -452,7 +523,9 @@ public class Evaluator
         if (nextName.Length == 0)
         {
             // Process array itself
-            throw new NotImplementedException("Array processing logic not implemented");
+            // According to https://learn.microsoft.com/en-us/azure/governance/policy/concepts/definition-structure#field-count
+            // "all array members with the path of 'field' are evaluated to true"
+            results.AddRange(arrayProperty.Select(item => new EvaluationResult() { Condition = true }));
         }
         else
         {
@@ -460,6 +533,8 @@ public class Evaluator
             if (nextName.Contains(PolicyConstants.ArrayMemberReference))
             {
                 // Process nested array
+                _logger.LogWarning("nested array processing in work-in-progress");
+
                 foreach (var item in arrayProperty)
                 {
                     // TODO: Handle nested arrays and results
@@ -469,6 +544,7 @@ public class Evaluator
             }
             else
             {
+                // Process array members
                 foreach (var item in arrayProperty)
                 {
                     // TODO: Handle arrays and results

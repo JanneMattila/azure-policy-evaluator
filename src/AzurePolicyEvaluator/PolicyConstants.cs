@@ -37,6 +37,10 @@ public static class PolicyConstants
         public const string NotEquals = "notEquals";
         public const string In = "in";
         public const string NotIn = "notIn";
+        public const string Greater = "greater";
+        public const string GreaterOrEquals = "greaterOrEquals";
+        public const string Less = "less";
+        public const string LessOrEquals = "lessOrEquals";
         // TODO: Add more conditions from: https://learn.microsoft.com/en-us/azure/governance/policy/concepts/definition-structure#conditions
     }
 
