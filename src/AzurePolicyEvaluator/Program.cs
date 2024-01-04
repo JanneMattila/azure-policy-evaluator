@@ -18,6 +18,9 @@ services.AddLogging(builder => {
 services.AddSingleton<Evaluator>();
 IServiceProvider serviceProvider = services.BuildServiceProvider();
 
+using var loggerFactory = serviceProvider.GetService<ILoggerFactory>();
+var logger = loggerFactory.CreateLogger<Program>();
+
 var policyOption = new Option<FileInfo?>("--policy") { Description = "Policy file to evaluate" };
 policyOption.AddAlias("-p");
 
@@ -32,7 +35,16 @@ const string EXTENSION = "json";
 
 var rootFolder = Directory.GetCurrentDirectory();
 
-var rootCommand = new RootCommand("Azure Policy Evaluator")
+var rootCommand = new RootCommand(@"Azure Policy Evaluator allows you to evaluate Azure Policy files against test files.
+You can use this to test your policies before deploying them to Azure.
+
+The tool can be used in two ways:
+
+1. Evaluate a single policy file against a single test file.
+2. Watch for policy changes in the folders and evaluate them against all test files in the sub-folders.
+
+More information can be found here:
+https://github.com/JanneMattila/azure-policy-evaluator")
 {
     policyOption,
     testOption,
@@ -43,7 +55,7 @@ rootCommand.SetHandler(async (policyFile, testFile, watch) =>
 {
     if (watch)
     {
-        Console.WriteLine("Watching for policy changes...");
+        logger.LogInformation("Watching for policy changes...");
         var watcher = new FileSystemWatcher(rootFolder, "*.json");
         watcher.Changed += PolicyFilesChanged;
         watcher.NotifyFilter = NotifyFilters.LastWrite;
@@ -61,7 +73,10 @@ rootCommand.SetHandler(async (policyFile, testFile, watch) =>
         var evaluator = serviceProvider.GetRequiredService<Evaluator>();
         var evaluationResult = evaluator.Evaluate(policy, test);
 
-        Console.WriteLine($"Policy '{Path.GetFileNameWithoutExtension(policyFile.Name)}' with test '{Path.GetFileNameWithoutExtension(testFile.Name)}' resulted to '{(evaluationResult.Condition ? evaluationResult.Effect : PolicyConstants.Effects.None)}'");
+        var actual = (evaluationResult.Condition ? evaluationResult.Effect : PolicyConstants.Effects.None);
+        var expected = GetExpectedResult(testFile.FullName);
+        var result = OutputResult(actual, expected);
+        logger.LogInformation($"Policy '{Path.GetFileNameWithoutExtension(policyFile.Name)}' with test '{Path.GetFileNameWithoutExtension(testFile.Name)}' resulted to '{actual}', '{expected}' was expected -> {result}");
     }
     else
     {
@@ -72,6 +87,18 @@ rootCommand.SetHandler(async (policyFile, testFile, watch) =>
 }, policyOption, testOption, watchOption);
 
 await rootCommand.InvokeAsync(args);
+
+string GetExpectedResult(string testFile)
+{
+    var name = Path.GetFileNameWithoutExtension(testFile);
+    var index = name.LastIndexOf('-');
+    return name.Substring(index + 1);
+}
+
+string OutputResult(string actual, string expected)
+{
+    return string.Compare(actual, expected, StringComparison.InvariantCultureIgnoreCase) == 0 ? "PASS" : "FAIL";
+}
 
 
 void PolicyFilesChanged(object sender, FileSystemEventArgs e)
@@ -96,7 +123,7 @@ void PolicyFilesChanged(object sender, FileSystemEventArgs e)
         var directory = testFile.Directory;
         while (directory.FullName.Length >= rootFolder.Length)
         {
-            Console.WriteLine($"Looking for policy file in {directory.FullName}...");
+            logger.LogInformation($"Looking for policy file in {directory.FullName}...");
             policyFile = Directory.GetFiles(directory.FullName, $"{POLICY_FILE_NAME}.{EXTENSION}").FirstOrDefault();
             if (policyFile != null)
             {
@@ -108,13 +135,13 @@ void PolicyFilesChanged(object sender, FileSystemEventArgs e)
 
         if (policyFile == null)
         {
-            Console.WriteLine($"Could not find policy file. Test file '{Path.GetFileNameWithoutExtension(testFile.Name)}' has been changed.");
+            logger.LogInformation($"Could not find policy file. Test file '{Path.GetFileNameWithoutExtension(testFile.Name)}' has been changed.");
             return;
         }
         policyFilename = policyFile;
     }
 
-    Console.WriteLine($"Evaluating policy {Path.GetFileNameWithoutExtension(policyFilename)}...");
+    logger.LogInformation($"Evaluating policy {Path.GetFileNameWithoutExtension(policyFilename)}...");
     var policy = SafeFileRead(policyFilename);
 
     foreach (var testFile in testFiles)
@@ -124,7 +151,10 @@ void PolicyFilesChanged(object sender, FileSystemEventArgs e)
         var evaluator = serviceProvider.GetRequiredService<Evaluator>();
         var evaluationResult = evaluator.Evaluate(policy, test);
 
-        Console.WriteLine($"Policy '{Path.GetFileNameWithoutExtension(policyFilename)}' with test '{Path.GetFileNameWithoutExtension(testFile)}' resulted to '{(evaluationResult.Condition ? evaluationResult.Effect : PolicyConstants.Effects.None)}'");
+        var actual = (evaluationResult.Condition ? evaluationResult.Effect : PolicyConstants.Effects.None);
+        var expected = GetExpectedResult(testFile);
+        var result = OutputResult(actual, expected);
+        logger.LogInformation($"Policy '{Path.GetFileNameWithoutExtension(policyFilename)}' with test '{Path.GetFileNameWithoutExtension(testFile)}' resulted to '{actual}', '{expected}' was expected -> {result}");
     }
 };
 

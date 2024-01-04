@@ -99,7 +99,7 @@ public class Evaluator
         result = ExecuteEvaluation(1, policyRoot, testDocument.RootElement);
 
         result.Effect = result.Condition ? result.Effect : PolicyConstants.Effects.None;
-        _logger.LogInformation("Policy evaluation finished with {Condition} causing effect {Effect}", result.Condition, result.Effect);
+        _logger.LogDebug("Policy evaluation finished with {Condition} causing effect {Effect}", result.Condition, result.Effect);
         return result;
     }
 
