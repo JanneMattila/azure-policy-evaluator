@@ -37,10 +37,19 @@ jobs:
       run: dotnet test --no-build --verbosity normal
 
     - name: Publish ${{ matrix.runtime }}
+      working-directory: src/AzurePolicyEvaluator
       run: dotnet publish --output output --version-suffix ""
 
-    - name: Upload build artifacts
+    - name: Upload Linux artifacts
       uses: actions/upload-artifact@v3
+      if: matrix.os == 'ubuntu-latest'
       with:
-        name: ape-${{ matrix.os }}
-        path: output/
+        name: ape-linux
+        path: src/AzurePolicyEvaluator/output/ape
+
+    - name: Upload Windows artifacts
+      uses: actions/upload-artifact@v3
+      if: matrix.os == 'windows-latest'
+      with:
+        name: ape-windows
+        path: src/AzurePolicyEvaluator/output/ape.exe
