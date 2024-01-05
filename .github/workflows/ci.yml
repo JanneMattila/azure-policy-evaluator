@@ -38,7 +38,7 @@ jobs:
 
     - name: Publish ${{ matrix.runtime }}
       working-directory: src/AzurePolicyEvaluator
-      run: dotnet publish --output output --version-suffix ""
+      run: dotnet publish --output output --version-suffix ''
 
     - name: Upload Linux artifacts
       uses: actions/upload-artifact@v3
