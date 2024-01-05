@@ -19,7 +19,7 @@ watchOption.AddAlias("-w");
 
 var loggingOption = new Option<string>(
     "--logging",
-    "Logging verbosity. Defaults to 'info'.")
+    "Logging verbosity")
         .FromAmong(
             "trace",
             "debug",

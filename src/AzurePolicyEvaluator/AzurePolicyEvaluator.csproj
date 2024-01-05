@@ -10,6 +10,8 @@
     <PackageProjectUrl>https://github.com/JanneMattila/azure-policy-evaluator</PackageProjectUrl>
     <RepositoryUrl>https://github.com/JanneMattila/azure-policy-evaluator</RepositoryUrl>
     <AssemblyName>ape</AssemblyName>
+	<VersionPrefix>0.0.1</VersionPrefix>
+	<VersionSuffix>$([System.DateTime]::UtcNow.ToString(`yyyyMMdd-HHmm`))</VersionSuffix>
   </PropertyGroup>
 
   <ItemGroup>
