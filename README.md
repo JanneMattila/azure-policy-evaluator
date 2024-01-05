@@ -1,5 +1,7 @@
 # Azure Policy Evaluator
 
+[![ci](https://github.com/JanneMattila/azure-policy-evaluator/actions/workflows/ci.yml/badge.svg)](https://github.com/JanneMattila/azure-policy-evaluator/actions/workflows/ci.yml)
+
 This is personal and very **experimental** project
 so don't expect anything from it.
 
@@ -217,11 +219,17 @@ As this is just an **experiment**, there are many limitations (list is not even 
 
 ## Usage
 
-Install the tool:
+Download the tool:
 
-```powershell
-# TO BE ADDED
-```
+1. Go to [Actions](https://github.com/JanneMattila/azure-policy-evaluator/actions/workflows/ci.yml)
+2. Select latest successful run
+3. Download artifact based on your platform
+   - `ape-windows` for Windows
+   - `ape-linux` for Linux
+4. Extract the artifact
+5. Add the executable to location which is in your `PATH` environment variable
+
+Ready to use:
 
 ```console
 $ ape --help
