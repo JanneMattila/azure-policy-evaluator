@@ -193,16 +193,18 @@ Now we can run our tool to evaluate the policy against the resource:
 ```console
 $ ape -p azurepolicy.json -t nsg.json
 
-Policy 'azurepolicy' with test 'nsg' resulted to 'Deny'
+10:10:00 info: Program[0] Policy 'azurepolicy' with test 'securityrule-allows-ssh-deny' evaluated to 'Deny' which was expected -> PASS
 ```
 
 See demo in action:
 
-TBA
+```powershell
+# TO BE ADDED
+```
 
 ## Limitations
 
-As this is just an **experiment**, there are many limitations (list is not exhaustive):
+As this is just an **experiment**, there are many limitations (list is not even exhaustive):
 
 - Most of the [template functions](https://learn.microsoft.com/en-us/azure/azure-resource-manager/templates/template-functions) are not implemented
   - `parameters` is implemented
@@ -225,23 +227,64 @@ Install the tool:
 $ ape --help
 
 Description:
-  Azure Policy Evaluator
+  Azure Policy Evaluator allows you to evaluate Azure Policy files against test files.
+  You can use this to test your policies before deploying them to Azure.
+
+  The tool can be used in two ways:
+
+  1. Evaluate a single policy file against a single test file.
+  2. Watch for policy changes in the folders and evaluate them against all test files in the sub-folders.
+
+  More information can be found here:
+  https://github.com/JanneMattila/azure-policy-evaluator
 
 Usage:
   ape [options]
 
 Options:
-  -p, --policy <policy>  Policy file to evaluate
-  -t, --test <test>      Test file to use in evaluation
-  -w, --watch            Watch current folder for policy changes
-  --version              Show version information
-  -?, -h, --help         Show help and usage information
+  -p, --policy <policy>         Policy file to evaluate
+  -t, --test <test>             Test file to use in evaluation
+  -w, --watch                   Watch current folder for policy changes
+  --logging <debug|info|trace>  Logging verbosity [default: info]
+  --version                     Show version information
+  -?, -h, --help                Show help and usage information
 ```
 
 Most common usage is to navigate to the policy folder and then execute:
 
 ```powershell
 ape -w
+```
+
+To see `debug` level logging:
+
+```powershell
+ape -w --logging debug
+```
+
+To evaluate single policy against single test file:
+
+```powershell
+ape -p azurepolicy.json -t nsg.json
+```
+
+To allow using `ape` from any folder, you can add it to
+any folder which is in your `PATH` environment variable.
+
+In case you want to remove `ape` from your system, you can
+just delete the executable. If you have fogotten where you
+installed it, you can use these commands to find the executable:
+
+Command-prompt:
+
+```cmd
+where ape
+```
+
+PowerShell:
+
+```powershell
+gcm ape | fl
 ```
 
 ## Links
