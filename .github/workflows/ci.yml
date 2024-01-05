@@ -14,12 +14,9 @@ jobs:
 
     strategy:
       matrix:
-        runtime: [win-x64, linux-x64]
+        os: [windows-latest, ubuntu-latest]
 
-    runs-on: ubuntu-latest
-
-    env:
-      output: src/AzurePolicyEvaluator/bin/Release/net8.0/${{ matrix.runtime }}/native
+    runs-on: ${{ matrix.os }}
 
     steps:
     - uses: actions/checkout@v3
@@ -39,10 +36,10 @@ jobs:
       run: dotnet test --no-build --verbosity normal
 
     - name: Publish ${{ matrix.runtime }}
-      run: dotnet publish --runtime ${{ matrix.runtime }} --version-suffix ""
+      run: dotnet publish --output output --version-suffix ""
 
     - name: Upload build artifacts
       uses: actions/upload-artifact@v3
       with:
-        name: ape-${{ matrix.runtime }}
-        path: ${{ env.output }}/
+        name: ape-${{ matrix.os }}
+        path: output/
