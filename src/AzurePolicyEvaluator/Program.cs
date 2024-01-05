@@ -128,7 +128,7 @@ void CreateEvaluationReport(string policyFile, string testFile, EvaluationResult
 
 void PolicyFilesChanged(object sender, FileSystemEventArgs e)
 {
-    if (lastWriteTime < File.GetLastWriteTime(e.FullPath))
+    if (lastWriteTime.AddMilliseconds(100) < File.GetLastWriteTime(e.FullPath))
     {
         lastWriteTime = File.GetLastWriteTime(e.FullPath);
     }
@@ -137,6 +137,9 @@ void PolicyFilesChanged(object sender, FileSystemEventArgs e)
         // File has been changed, but it was the same change that we already processed.
         return;
     }
+
+    logger.LogInformation($"Policy files changed");
+
     var policyFilename = e.FullPath;
     List<string> testFiles = [];
     if (Path.GetFileNameWithoutExtension(e.Name) == POLICY_FILE_NAME)

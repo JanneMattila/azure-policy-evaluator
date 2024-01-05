@@ -223,7 +223,7 @@ public class Evaluator
                 _logger.LogDebug("'anyOf' started");
 
                 var anyOfChildren = anyOfObject.EnumerateArray();
-                if (anyOfChildren.Count() == 0)
+                if (!anyOfChildren.Any())
                 {
                     var error = $"Logical operator {LogicalOperators.AnyOf} must have child elements.";
                     _logger.LogError(error);
@@ -241,7 +241,7 @@ public class Evaluator
                 }
 
                 result.Count = result.Condition ? result.Count : 0;
-                _logger.LogDebug($"'anyOf' return condition {result.Condition}");
+                _logger.LogDebug("'anyOf' return condition {Condition}", result.Condition);
                 return result;
             }
             else if (policy.TryGetProperty(LogicalOperators.AllOf, out var allOfObject))
@@ -249,7 +249,7 @@ public class Evaluator
                 _logger.LogDebug("'allOf' started");
 
                 var allOfChildren = allOfObject.EnumerateArray();
-                if (allOfChildren.Count() == 0)
+                if (!allOfChildren.Any())
                 {
                     var error = $"Logical operator {LogicalOperators.AllOf} must have child elements.";
                     _logger.LogError(error);
@@ -266,7 +266,7 @@ public class Evaluator
                 result.Condition = results.All(o => o.Condition);
                 result.Count = result.Condition ? results.Count : 0;
 
-                _logger.LogDebug($"'allOf' return condition {result.Condition}");
+                _logger.LogDebug("'allOf' return condition {Condition}", result.Condition);
                 return result;
             }
             else if (policy.TryGetProperty(PolicyConstants.Count, out var countObject))
@@ -295,7 +295,7 @@ public class Evaluator
 
                 result = ExecuteCountEvaluation(policy, result);
 
-                _logger.LogDebug($"'count' return condition {result.Condition}");
+                _logger.LogDebug("'count' return condition {Condition} with {Count}", result.Condition, result.Count);
                 return result;
             }
             else if (policy.TryGetProperty(PolicyConstants.Field, out var fieldObject))
@@ -304,7 +304,7 @@ public class Evaluator
 
                 result = ExecuteFieldEvaluation(fieldObject, policy, test);
 
-                _logger.LogDebug($"'field' return condition {result.Condition}");
+                _logger.LogDebug("'field' return condition {Condition}", result.Condition);
                 return result;
             }
             else
