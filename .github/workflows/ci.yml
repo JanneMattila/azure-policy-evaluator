@@ -1,6 +1,7 @@
 name: ci
 
 on:
+  workflow_dispatch:
   push:
     branches: [ "main" ]
     paths:
@@ -14,12 +15,9 @@ jobs:
 
     strategy:
       matrix:
-        runtime: [win-x64, linux-x64]
+        os: [windows-latest, ubuntu-latest]
 
-    runs-on: ubuntu-latest
-
-    env:
-      output: src/AzurePolicyEvaluator/bin/Release/net8.0/${{ matrix.runtime }}/native
+    runs-on: ${{ matrix.os }}
 
     steps:
     - uses: actions/checkout@v3
@@ -39,10 +37,19 @@ jobs:
       run: dotnet test --no-build --verbosity normal
 
     - name: Publish ${{ matrix.runtime }}
-      run: dotnet publish --runtime ${{ matrix.runtime }} --version-suffix ""
+      working-directory: src/AzurePolicyEvaluator
+      run: dotnet publish --output output
 
-    - name: Upload build artifacts
+    - name: Upload Linux artifacts
       uses: actions/upload-artifact@v3
+      if: matrix.os == 'ubuntu-latest'
       with:
-        name: ape-${{ matrix.runtime }}
-        path: ${{ env.output }}/
+        name: ape-linux
+        path: src/AzurePolicyEvaluator/output/ape
+
+    - name: Upload Windows artifacts
+      uses: actions/upload-artifact@v3
+      if: matrix.os == 'windows-latest'
+      with:
+        name: ape-windows
+        path: src/AzurePolicyEvaluator/output/ape.exe
