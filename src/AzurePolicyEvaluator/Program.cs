@@ -6,6 +6,7 @@ using System.CommandLine;
 
 IServiceProvider serviceProvider;
 ILogger<Program> logger;
+var lastWriteTime = DateTime.MinValue;
 
 var policyOption = new Option<FileInfo?>("--policy") { Description = "Policy file to evaluate" };
 policyOption.AddAlias("-p");
@@ -93,18 +94,13 @@ rootCommand.SetHandler(async (policyFile, testFile, watch, logging) =>
 
         var evaluator = serviceProvider.GetRequiredService<Evaluator>();
         var evaluationResult = evaluator.Evaluate(policy, test);
-
-        var actual = (evaluationResult.Condition ? evaluationResult.Effect : PolicyConstants.Effects.None);
-        var expected = GetExpectedResult(testFile.FullName);
-        var result = OutputResult(actual, expected);
-        logger.LogInformation($"Policy '{Path.GetFileNameWithoutExtension(policyFile.Name)}' with test '{Path.GetFileNameWithoutExtension(testFile.Name)}' resulted to '{actual}', '{expected}' was expected -> {result}");
+        CreateEvaluationReport(policyFile.FullName, testFile.FullName, evaluationResult);
     }
     else
     {
         Console.WriteLine("Required arguments missing.");
         Console.WriteLine("Try '--help' for more information.");
     }
-
 }, policyOption, testOption, watchOption, loggingOption);
 
 await rootCommand.InvokeAsync(args);
@@ -116,14 +112,31 @@ string GetExpectedResult(string testFile)
     return name.Substring(index + 1);
 }
 
-string OutputResult(string actual, string expected)
+void CreateEvaluationReport(string policyFile, string testFile, EvaluationResult evaluationResult)
 {
-    return string.Compare(actual, expected, StringComparison.InvariantCultureIgnoreCase) == 0 ? "PASS" : "FAIL";
-}
+    var actual = (evaluationResult.Condition ? evaluationResult.Effect : PolicyConstants.Effects.None);
+    var expected = GetExpectedResult(testFile);
 
+    var result = "which was expected -> PASS";
+    if (string.Compare(actual, expected, StringComparison.InvariantCultureIgnoreCase) != 0)
+    {
+        result = $"which was not the expected '{expected}' -> FAIL";
+    }
+
+    logger.LogInformation($"Policy '{Path.GetFileNameWithoutExtension(policyFile)}' with test '{Path.GetFileNameWithoutExtension(testFile)}' evaluated to '{actual}' {result}");
+}
 
 void PolicyFilesChanged(object sender, FileSystemEventArgs e)
 {
+    if (lastWriteTime < File.GetLastWriteTime(e.FullPath))
+    {
+        lastWriteTime = File.GetLastWriteTime(e.FullPath);
+    }
+    else
+    {
+        // File has been changed, but it was the same change that we already processed.
+        return;
+    }
     var policyFilename = e.FullPath;
     List<string> testFiles = [];
     if (Path.GetFileNameWithoutExtension(e.Name) == POLICY_FILE_NAME)
@@ -144,7 +157,7 @@ void PolicyFilesChanged(object sender, FileSystemEventArgs e)
         var directory = testFile.Directory;
         while (directory.FullName.Length >= rootFolder.Length)
         {
-            logger.LogInformation($"Looking for policy file in {directory.FullName}...");
+            logger.LogDebug($"Looking for policy file in {directory.FullName}...");
             policyFile = Directory.GetFiles(directory.FullName, $"{POLICY_FILE_NAME}.{EXTENSION}").FirstOrDefault();
             if (policyFile != null)
             {
@@ -156,13 +169,13 @@ void PolicyFilesChanged(object sender, FileSystemEventArgs e)
 
         if (policyFile == null)
         {
-            logger.LogInformation($"Could not find policy file. Test file '{Path.GetFileNameWithoutExtension(testFile.Name)}' has been changed.");
+            logger.LogWarning($"Could not find policy file. Test file '{Path.GetFileNameWithoutExtension(testFile.Name)}' has been changed.");
             return;
         }
         policyFilename = policyFile;
     }
 
-    logger.LogInformation($"Evaluating policy {Path.GetFileNameWithoutExtension(policyFilename)}...");
+    logger.LogDebug($"Evaluating policy {Path.GetFileNameWithoutExtension(policyFilename)}...");
     var policy = SafeFileRead(policyFilename);
 
     foreach (var testFile in testFiles)
@@ -172,10 +185,7 @@ void PolicyFilesChanged(object sender, FileSystemEventArgs e)
         var evaluator = serviceProvider.GetRequiredService<Evaluator>();
         var evaluationResult = evaluator.Evaluate(policy, test);
 
-        var actual = (evaluationResult.Condition ? evaluationResult.Effect : PolicyConstants.Effects.None);
-        var expected = GetExpectedResult(testFile);
-        var result = OutputResult(actual, expected);
-        logger.LogInformation($"Policy '{Path.GetFileNameWithoutExtension(policyFilename)}' with test '{Path.GetFileNameWithoutExtension(testFile)}' resulted to '{actual}', '{expected}' was expected -> {result}");
+        CreateEvaluationReport(policyFilename, testFile, evaluationResult);
     }
 };
 string SafeFileRead(string file)

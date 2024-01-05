@@ -85,6 +85,20 @@ public class Evaluator
             return result;
         }
 
+        if (!policyRule.TryGetProperty(PolicyConstants.Then, out var thenElement))
+        {
+            result.Result = EvaluationResultTexts.PolicyRuleDoesNotContainThen;
+            _logger.LogError(result.Result);
+            return result;
+        }
+
+        if (!thenElement.TryGetProperty(PolicyConstants.Effect, out var effectElement))
+        {
+            result.Result = EvaluationResultTexts.PolicyRuleDoesNotContainEffect;
+            _logger.LogError(result.Result);
+            return result;
+        }
+
         if (policyProperties.TryGetProperty(PolicyConstants.Parameters.Name, out var parameters))
         {
             _parameters = ParseParameters(parameters);
@@ -98,7 +112,16 @@ public class Evaluator
 
         result = ExecuteEvaluation(1, policyRoot, testDocument.RootElement);
 
-        result.Effect = result.Condition ? result.Effect : PolicyConstants.Effects.None;
+        if (result.Condition)
+        {
+            var effect = effectElement.GetString();
+            ArgumentNullException.ThrowIfNull(effect);
+            result.Effect = (string)RunTemplateFunctions(effect);
+        }
+        else
+        {
+            result.Effect = PolicyConstants.Effects.None;
+        }
         _logger.LogDebug("Policy evaluation finished with {Condition} causing effect {Effect}", result.Condition, result.Effect);
         return result;
     }
