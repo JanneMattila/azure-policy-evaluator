@@ -106,7 +106,9 @@ public class Evaluator
             if (effectParameter != null &&
                 effectParameter.DefaultValue != null)
             {
-                result.Effect = effectParameter.DefaultValue.ToString();
+                var value = effectParameter.DefaultValue.ToString();
+                ArgumentNullException.ThrowIfNull(value);
+                result.Effect = value;
             }
         }
 
@@ -397,6 +399,7 @@ public class Evaluator
                     _logger.LogDebug("Property {PropertyName} is resource property", propertyName);
 
                     var type = test.GetProperty(PolicyConstants.Type).GetString();
+                    ArgumentNullException.ThrowIfNull(type);
 
                     if (!propertyName.StartsWith(type))
                     {
@@ -459,6 +462,8 @@ public class Evaluator
         if (policy.TryGetProperty(Conditions.Equals, out var equalsElement))
         {
             var equalsValue = equalsElement.GetString();
+            ArgumentNullException.ThrowIfNull(equalsValue);
+
             var value = RunTemplateFunctions(equalsValue)?.ToString();
             result.Condition = propertyValue == value;
             _logger.LogDebug("Property {PropertyName} \"equals\" {EqualsValue} is {Condition}", propertyName, equalsValue, result.Condition);
@@ -466,6 +471,8 @@ public class Evaluator
         else if (policy.TryGetProperty(Conditions.NotEquals, out var notEqualsElement))
         {
             var notEqualsValue = notEqualsElement.GetString();
+            ArgumentNullException.ThrowIfNull(notEqualsValue);
+
             var value = RunTemplateFunctions(notEqualsValue)?.ToString();
             result.Condition = propertyValue != value;
 
@@ -474,6 +481,8 @@ public class Evaluator
         else if (policy.TryGetProperty(Conditions.In, out var inElement))
         {
             var inValue = inElement.GetString();
+            ArgumentNullException.ThrowIfNull(inValue);
+
             var list = RunTemplateFunctions(inValue) as List<string>;
             ArgumentNullException.ThrowIfNull(list, nameof(list));
             result.Condition = list.Contains(propertyValue);
@@ -483,6 +492,8 @@ public class Evaluator
         else if (policy.TryGetProperty(Conditions.NotIn, out var notInElement))
         {
             var notInValue = notInElement.GetString();
+            ArgumentNullException.ThrowIfNull(notInValue);
+
             var list = RunTemplateFunctions(notInValue) as List<string>;
             ArgumentNullException.ThrowIfNull(list, nameof(list));
             result.Condition = !list.Contains(propertyValue);
