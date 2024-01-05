@@ -1,0 +1,48 @@
+name: ci
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'src'
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+
+  build:
+
+    strategy:
+      matrix:
+        runtime: [win-x64, linux-x64]
+
+    runs-on: ubuntu-latest
+
+    env:
+      output: src/AzurePolicyEvaluator/bin/Release/net8.0/${{ matrix.runtime }}/native
+
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 8.0.x
+
+    - name: Restore dependencies
+      run: dotnet restore
+      
+    - name: Build
+      run: dotnet build --no-restore
+
+    - name: Test
+      run: dotnet test --no-build --verbosity normal
+
+    - name: Publish ${{ matrix.runtime }}
+      run: dotnet publish --runtime ${{ matrix.runtime }} --version-suffix ""
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: ape-${{ matrix.runtime }}
+        path: ${{ env.output }}/
