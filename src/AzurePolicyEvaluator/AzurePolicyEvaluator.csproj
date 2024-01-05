@@ -12,7 +12,6 @@
 	<PublishReadyToRun>true</PublishReadyToRun>
 	<DebugType>embedded</DebugType>
 	<EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
-	<RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <InvariantGlobalization>true</InvariantGlobalization>
     <PackageProjectUrl>https://github.com/JanneMattila/azure-policy-evaluator</PackageProjectUrl>
     <RepositoryUrl>https://github.com/JanneMattila/azure-policy-evaluator</RepositoryUrl>

@@ -445,6 +445,8 @@ public class Evaluator
                     propertyValue = propertyElement.GetString();
                 }
 
+                ArgumentNullException.ThrowIfNull(propertyValue);
+
                 result = FieldComparison(policy, propertyName, propertyValue);
             }
         }
@@ -528,10 +530,12 @@ public class Evaluator
                     {
                         throw new KeyNotFoundException($"Parameter {parameters} not found.");
                     }
+                    ArgumentNullException.ThrowIfNull(requiredParameter.DefaultValue);
                     return requiredParameter.DefaultValue;
 
                 case TemplateFunctions.Concat:
                     var concatParameters = parameters as List<string>;
+                    ArgumentNullException.ThrowIfNull(concatParameters);
                     text = string.Join(string.Empty, concatParameters);
                     break;
             }
@@ -613,6 +617,8 @@ public class Evaluator
                     }
 
                     propertyValue = propertyElement.GetString();
+                    ArgumentNullException.ThrowIfNull(propertyValue);
+
                     var result = FieldComparison(policy, nextName, propertyValue);
                     results.Add(result);
                 }

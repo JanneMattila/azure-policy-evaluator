@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
 using System.CommandLine;
+using System.IO;
 
 IServiceProvider serviceProvider;
 ILogger<Program> logger;
@@ -73,6 +74,8 @@ rootCommand.SetHandler(async (policyFile, testFile, watch, logging) =>
     serviceProvider = services.BuildServiceProvider();
 
     using var loggerFactory = serviceProvider.GetService<ILoggerFactory>();
+    ArgumentNullException.ThrowIfNull(loggerFactory);
+
     logger = loggerFactory.CreateLogger<Program>();
 
     if (watch)
@@ -146,6 +149,8 @@ void PolicyFilesChanged(object sender, FileSystemEventArgs e)
     {
         // Azure Policy file has been changed. Look for test files in sub-folders.
         var policyFolder = Directory.GetParent(policyFilename);
+        ArgumentNullException.ThrowIfNull(policyFolder);
+
         testFiles = Directory.GetFiles(policyFolder.FullName, $"*.{EXTENSION}", SearchOption.AllDirectories)
             .Where(f => Path.GetFileNameWithoutExtension(f) != POLICY_FILE_NAME)
             .ToList();
@@ -155,9 +160,11 @@ void PolicyFilesChanged(object sender, FileSystemEventArgs e)
         // Test file has been changed. Look for policy file in parent folder.
         var testFile = new FileInfo(policyFilename);
         testFiles.Add(testFile.FullName);
-        string policyFile = null;
+        string? policyFile = null;
 
         var directory = testFile.Directory;
+        ArgumentNullException.ThrowIfNull(directory);
+
         while (directory.FullName.Length >= rootFolder.Length)
         {
             logger.LogDebug($"Looking for policy file in {directory.FullName}...");
@@ -168,6 +175,7 @@ void PolicyFilesChanged(object sender, FileSystemEventArgs e)
                 break;
             }
             directory = directory.Parent;
+            ArgumentNullException.ThrowIfNull(directory);
         }
 
         if (policyFile == null)
