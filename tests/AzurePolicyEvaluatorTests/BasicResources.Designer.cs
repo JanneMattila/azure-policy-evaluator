@@ -137,5 +137,30 @@ namespace AzurePolicyEvaluatorTests {
                 return ResourceManager.GetString("Policy_NSG_DenyPorts", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {
+        ///  &quot;type&quot;: &quot;Microsoft.Network/networkSecurityGroups/securityRules&quot;,
+        ///  &quot;properties&quot;: {
+        ///    &quot;protocol&quot;: &quot;*&quot;,
+        ///    &quot;sourcePortRange&quot;: &quot;*&quot;,
+        ///    &quot;destinationPortRange&quot;: &quot;22&quot;,
+        ///    &quot;sourceAddressPrefix&quot;: &quot;*&quot;,
+        ///    &quot;destinationAddressPrefix&quot;: &quot;10.0.0.4&quot;,
+        ///    &quot;access&quot;: &quot;Allow&quot;,
+        ///    &quot;priority&quot;: 4096,
+        ///    &quot;direction&quot;: &quot;Inbound&quot;,
+        ///    &quot;sourcePortRanges&quot;: [],
+        ///    &quot;destinationPortRanges&quot;: [],
+        ///    &quot;sourceAddressPrefixes&quot;: [],
+        ///    &quot;destinationAddressPrefixes&quot;: []
+        ///  }
+        ///}.
+        /// </summary>
+        internal static string SecurityRule_AllowSSH {
+            get {
+                return ResourceManager.GetString("SecurityRule_AllowSSH", resourceCulture);
+            }
+        }
     }
 }

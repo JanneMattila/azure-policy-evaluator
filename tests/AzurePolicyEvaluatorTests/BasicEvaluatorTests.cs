@@ -80,23 +80,6 @@ public class BasicEvaluatorTests
     }
 
     [Fact]
-    public void LocationPolicyTest()
-    {
-        // Arrange
-        var expected = PolicyConstants.Effects.None;
-        var policy = BasicResources.Policy_Location_List;
-        var test = BasicResources.NSG_AllowSSHandRDP;
-        var evaluator = new Evaluator(NullLogger<Evaluator>.Instance);
-
-        // Act
-        var evaluationResult = evaluator.Evaluate(policy, test);
-
-        // Assert
-        Assert.False(evaluationResult.Condition);
-        Assert.Equal(expected, evaluationResult.Effect);
-    }
-
-    [Fact]
     public void ParameterTemplateFunctionTest()
     {
         // Arrange
@@ -109,23 +92,6 @@ public class BasicEvaluatorTests
 
         // Assert
         Assert.Equal(expected, actual);
-    }
-
-    [Fact]
-    public void NetworkSecurityGroupPolicyTest()
-    {
-        // Arrange
-        var expected = PolicyConstants.Effects.Audit;
-        var policy = BasicResources.Policy_NSG_DenyPorts;
-        var test = BasicResources.NSG_AllowSSHandRDP;
-        var evaluator = new Evaluator(NullLogger<Evaluator>.Instance);
-
-        // Act
-        var evaluationResult = evaluator.Evaluate(policy, test);
-
-        // Assert
-        Assert.True(evaluationResult.Condition);
-        Assert.Equal(expected, evaluationResult.Effect);
     }
 
     [Fact]
