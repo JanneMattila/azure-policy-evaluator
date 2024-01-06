@@ -216,6 +216,7 @@ As this is just an **experiment**, there are many limitations (list is not even 
   - `field`, `count`, `in`, `notIn`, `allOf`, `anyOf`, `not`, `equals`, `notEquals`, `greater`, `greaterOrEquals`, `less`, `lessOrEquals` are implemented _at least partially_
 - [Aliases](https://learn.microsoft.com/en-us/azure/governance/policy/concepts/definition-structure#aliases) are not implemented
   - Only `[*]` array alias is implemented
+- `"source": "action"` is not implemented ([info](https://github.com/MicrosoftDocs/azure-docs/issues/5899))
 
 ## Usage
 

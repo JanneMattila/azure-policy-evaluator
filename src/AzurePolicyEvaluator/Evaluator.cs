@@ -64,42 +64,42 @@ public class Evaluator
             return result;
         }
 
-        if (!policyDocument.RootElement.TryGetProperty(PolicyConstants.Properties.Name, out var policyProperties))
+        if (!policyDocument.RootElement.TryGetPropertyIgnoreCasing(PolicyConstants.Properties.Name, out var policyProperties))
         {
             result.Result = EvaluationResultTexts.PolicyDoesNotContainProperties;
             _logger.LogError(result.Result);
             return result;
         }
 
-        if (!policyProperties.TryGetProperty(PolicyConstants.Properties.PolicyRule, out var policyRule))
+        if (!policyProperties.TryGetPropertyIgnoreCasing(PolicyConstants.Properties.PolicyRule, out var policyRule))
         {
             result.Result = EvaluationResultTexts.PolicyDoesNotContainPolicyRule;
             _logger.LogError(result.Result);
             return result;
         }
 
-        if (!policyRule.TryGetProperty(PolicyConstants.Properties.If, out var policyRoot))
+        if (!policyRule.TryGetPropertyIgnoreCasing(PolicyConstants.Properties.If, out var policyRoot))
         {
             result.Result = EvaluationResultTexts.PolicyRuleDoesNotContainIf;
             _logger.LogError(result.Result);
             return result;
         }
 
-        if (!policyRule.TryGetProperty(PolicyConstants.Then, out var thenElement))
+        if (!policyRule.TryGetPropertyIgnoreCasing(PolicyConstants.Then, out var thenElement))
         {
             result.Result = EvaluationResultTexts.PolicyRuleDoesNotContainThen;
             _logger.LogError(result.Result);
             return result;
         }
 
-        if (!thenElement.TryGetProperty(PolicyConstants.Effect, out var effectElement))
+        if (!thenElement.TryGetPropertyIgnoreCasing(PolicyConstants.Effect, out var effectElement))
         {
             result.Result = EvaluationResultTexts.PolicyRuleDoesNotContainEffect;
             _logger.LogError(result.Result);
             return result;
         }
 
-        if (policyProperties.TryGetProperty(PolicyConstants.Parameters.Name, out var parameters))
+        if (policyProperties.TryGetPropertyIgnoreCasing(PolicyConstants.Parameters.Name, out var parameters))
         {
             _parameters = ParseParameters(parameters);
             var effectParameter = _parameters.FirstOrDefault(o => string.Compare(o.Name, PolicyConstants.Effect, true) == 0);
@@ -148,7 +148,7 @@ public class Evaluator
 
                 _logger.LogDebug("Parsing parameter {Name} of type {Type}", parameter.Name, type);
 
-                var hasDefaultValue = parameter.Value.TryGetProperty(PolicyConstants.Parameters.DefaultValue, out var defaultValue);
+                var hasDefaultValue = parameter.Value.TryGetPropertyIgnoreCasing(PolicyConstants.Parameters.DefaultValue, out var defaultValue);
 
                 switch (type)
                 {
@@ -210,7 +210,8 @@ public class Evaluator
 
         if (policy.ValueKind == JsonValueKind.Object)
         {
-            if (policy.TryGetProperty(LogicalOperators.Not, out var notObject))
+            // TODO: Fix case sensitivity
+            if (policy.TryGetPropertyIgnoreCasing(LogicalOperators.Not, out var notObject))
             {
                 _logger.LogDebug("'not' started");
 
@@ -220,7 +221,7 @@ public class Evaluator
                 _logger.LogDebug($"'not' return condition {result.Condition}");
                 return result;
             }
-            else if (policy.TryGetProperty(LogicalOperators.AnyOf, out var anyOfObject))
+            else if (policy.TryGetPropertyIgnoreCasing(LogicalOperators.AnyOf, out var anyOfObject))
             {
                 _logger.LogDebug("'anyOf' started");
 
@@ -246,7 +247,7 @@ public class Evaluator
                 _logger.LogDebug("'anyOf' return condition {Condition}", result.Condition);
                 return result;
             }
-            else if (policy.TryGetProperty(LogicalOperators.AllOf, out var allOfObject))
+            else if (policy.TryGetPropertyIgnoreCasing(LogicalOperators.AllOf, out var allOfObject))
             {
                 _logger.LogDebug("'allOf' started");
 
@@ -271,13 +272,13 @@ public class Evaluator
                 _logger.LogDebug("'allOf' return condition {Condition}", result.Condition);
                 return result;
             }
-            else if (policy.TryGetProperty(PolicyConstants.Count, out var countObject))
+            else if (policy.TryGetPropertyIgnoreCasing(PolicyConstants.Count, out var countObject))
             {
                 _logger.LogDebug("'count' started");
 
                 // More information:
                 // https://learn.microsoft.com/en-us/azure/governance/policy/concepts/definition-structure#field-count
-                if (!countObject.TryGetProperty(PolicyConstants.Field, out var fieldObject))
+                if (!countObject.TryGetPropertyIgnoreCasing(PolicyConstants.Field, out var fieldObject))
                 {
                     var error = $"Count expression must have 'field' child element.";
                     _logger.LogError(error);
@@ -285,7 +286,7 @@ public class Evaluator
                     return result;
                 }
 
-                var hasWhereProperty = countObject.TryGetProperty(PolicyConstants.Where, out var whereObject);
+                var hasWhereProperty = countObject.TryGetPropertyIgnoreCasing(PolicyConstants.Where, out var whereObject);
 
                 result = ExecuteFieldEvaluation(fieldObject, policy, test);
                 if (hasWhereProperty)
@@ -300,7 +301,7 @@ public class Evaluator
                 _logger.LogDebug("'count' return condition {Condition} with {Count}", result.Condition, result.Count);
                 return result;
             }
-            else if (policy.TryGetProperty(PolicyConstants.Field, out var fieldObject))
+            else if (policy.TryGetPropertyIgnoreCasing(PolicyConstants.Field, out var fieldObject))
             {
                 _logger.LogDebug("'field' started");
 
@@ -323,7 +324,7 @@ public class Evaluator
     internal EvaluationResult ExecuteCountEvaluation(JsonElement countObject, EvaluationResult childResult)
     {
         EvaluationResult result = new();
-        if (countObject.TryGetProperty(Conditions.Greater, out var greaterElement))
+        if (countObject.TryGetPropertyIgnoreCasing(Conditions.Greater, out var greaterElement))
         {
             if (greaterElement.ValueKind != JsonValueKind.Number)
             {
@@ -336,7 +337,7 @@ public class Evaluator
             result.Condition = childResult.Count > greaterValue;
             _logger.LogDebug("Child count {Count} \"greater\" {Value} is {Condition}", childResult.Count, greaterValue, result.Condition);
         }
-        else if (countObject.TryGetProperty(Conditions.GreaterOrEquals, out var greaterOrEqualsElement))
+        else if (countObject.TryGetPropertyIgnoreCasing(Conditions.GreaterOrEquals, out var greaterOrEqualsElement))
         {
             if (greaterOrEqualsElement.ValueKind != JsonValueKind.Number)
             {
@@ -349,7 +350,7 @@ public class Evaluator
             result.Condition = childResult.Count >= greaterOrEqualsValue;
             _logger.LogDebug("Child count {Count} \"greaterOrEquals\" {Value} is {Condition}", childResult.Count, greaterOrEqualsValue, result.Condition);
         }
-        else if (countObject.TryGetProperty(Conditions.Less, out var lessElement))
+        else if (countObject.TryGetPropertyIgnoreCasing(Conditions.Less, out var lessElement))
         {
             if (lessElement.ValueKind != JsonValueKind.Number)
             {
@@ -362,7 +363,7 @@ public class Evaluator
             result.Condition = childResult.Count < lessValue;
             _logger.LogDebug("Child count {Count} \"less\" {Value} is {Condition}", childResult.Count, lessValue, result.Condition);
         }
-        else if (countObject.TryGetProperty(Conditions.LessOrEquals, out var lessOrEqualsElement))
+        else if (countObject.TryGetPropertyIgnoreCasing(Conditions.LessOrEquals, out var lessOrEqualsElement))
         {
             if (lessOrEqualsElement.ValueKind != JsonValueKind.Number)
             {
@@ -423,7 +424,7 @@ public class Evaluator
                     }
                     else
                     {
-                        if (!properties.TryGetProperty(propertyName, out var propertyElement))
+                        if (!properties.TryGetPropertyIgnoreCasing(propertyName, out var propertyElement))
                         {
                             // No property with the given name exists in the test file.
                             result.Condition = false;
@@ -435,7 +436,7 @@ public class Evaluator
                 }
                 else
                 {
-                    if (!test.TryGetProperty(propertyName, out var propertyElement))
+                    if (!test.TryGetPropertyIgnoreCasing(propertyName, out var propertyElement))
                     {
                         // No property with the given name exists in the test file.
                         result.Condition = false;
@@ -461,7 +462,7 @@ public class Evaluator
     internal EvaluationResult FieldComparison(JsonElement policy, string propertyName, string propertyValue)
     {
         EvaluationResult result = new();
-        if (policy.TryGetProperty(Conditions.Equals, out var equalsElement))
+        if (policy.TryGetPropertyIgnoreCasing(Conditions.Equals, out var equalsElement))
         {
             var equalsValue = equalsElement.GetString();
             ArgumentNullException.ThrowIfNull(equalsValue);
@@ -470,7 +471,7 @@ public class Evaluator
             result.Condition = propertyValue == value;
             _logger.LogDebug("Property {PropertyName} \"equals\" {EqualsValue} is {Condition}", propertyName, equalsValue, result.Condition);
         }
-        else if (policy.TryGetProperty(Conditions.NotEquals, out var notEqualsElement))
+        else if (policy.TryGetPropertyIgnoreCasing(Conditions.NotEquals, out var notEqualsElement))
         {
             var notEqualsValue = notEqualsElement.GetString();
             ArgumentNullException.ThrowIfNull(notEqualsValue);
@@ -480,7 +481,7 @@ public class Evaluator
 
             _logger.LogDebug("Property {PropertyName} \"notEquals\" {NotEqualsValue} is {Condition}", propertyName, notEqualsValue, result.Condition);
         }
-        else if (policy.TryGetProperty(Conditions.In, out var inElement))
+        else if (policy.TryGetPropertyIgnoreCasing(Conditions.In, out var inElement))
         {
             var inValue = inElement.GetString();
             ArgumentNullException.ThrowIfNull(inValue);
@@ -491,7 +492,7 @@ public class Evaluator
 
             _logger.LogDebug("Property {PropertyName} \"in\" {InValue} is {Condition}", propertyName, inValue, result.Condition);
         }
-        else if (policy.TryGetProperty(Conditions.NotIn, out var notInElement))
+        else if (policy.TryGetPropertyIgnoreCasing(Conditions.NotIn, out var notInElement))
         {
             var notInValue = notInElement.GetString();
             ArgumentNullException.ThrowIfNull(notInValue);
@@ -552,7 +553,7 @@ public class Evaluator
     {
         var results = new List<EvaluationResult>();
         var arrayName = propertyName.Substring(0, propertyName.IndexOf(PolicyConstants.ArrayMemberReference));
-        if (!propertiesElement.TryGetProperty(arrayName, out var arrayPropertyElement))
+        if (!propertiesElement.TryGetPropertyIgnoreCasing(arrayName, out var arrayPropertyElement))
         {
             // No array property with the given name exists in the test file.
             results.Add(new EvaluationResult
@@ -606,7 +607,7 @@ public class Evaluator
                     string? propertyValue = null;
                     var properties = item.GetProperty(Properties.Name);
 
-                    if (!properties.TryGetProperty(nextName, out var propertyElement))
+                    if (!properties.TryGetPropertyIgnoreCasing(nextName, out var propertyElement))
                     {
                         // No property with the given name exists in the test file.
                         results.Add(new EvaluationResult
