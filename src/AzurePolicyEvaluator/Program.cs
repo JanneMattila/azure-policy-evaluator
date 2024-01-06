@@ -15,8 +15,11 @@ policyOption.AddAlias("-p");
 var testOption = new Option<FileInfo?>("--test") { Description = "Test file to use in evaluation" };
 testOption.AddAlias("-t");
 
-var watchOption = new Option<bool>("--watch") { Description = "Watch current folder for policy changes" };
+var watchOption = new Option<bool>("--watch") { Description = "Watch folder for policy changes" };
 watchOption.AddAlias("-w");
+
+var watchFolderOption = new Option<string>("--watch-folder") { Description = "Override watch folder path" };
+watchFolderOption.AddAlias("-f");
 
 var loggingOption = new Option<string>(
     "--logging",
@@ -46,10 +49,11 @@ https://github.com/JanneMattila/azure-policy-evaluator")
     policyOption,
     testOption,
     watchOption,
+    watchFolderOption,
     loggingOption
 };
 
-rootCommand.SetHandler(async (policyFile, testFile, watch, logging) =>
+rootCommand.SetHandler(async (policyFile, testFile, watch, folder, logging) =>
 {
     var loggingLevel = logging switch
     {
@@ -80,6 +84,16 @@ rootCommand.SetHandler(async (policyFile, testFile, watch, logging) =>
 
     if (watch)
     {
+        if (!string.IsNullOrEmpty(folder))
+        {
+            var path = Path.GetFullPath(folder);
+            if (!Directory.Exists(path))
+            {
+                logger.LogError("Folder '{Path}' does not exist.", path);
+                return;
+            }
+            rootFolder = path;
+        }
         logger.LogInformation("Watching for policy changes...");
         var watcher = new FileSystemWatcher(rootFolder, "*.json");
         watcher.Changed += PolicyFilesChanged;
@@ -104,7 +118,7 @@ rootCommand.SetHandler(async (policyFile, testFile, watch, logging) =>
         Console.WriteLine("Required arguments missing.");
         Console.WriteLine("Try '--help' for more information.");
     }
-}, policyOption, testOption, watchOption, loggingOption);
+}, policyOption, testOption, watchOption, watchFolderOption, loggingOption);
 
 await rootCommand.InvokeAsync(args);
 

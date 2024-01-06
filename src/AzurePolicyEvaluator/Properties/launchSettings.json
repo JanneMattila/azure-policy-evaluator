@@ -2,7 +2,8 @@
   "profiles": {
     "AzurePolicyEvaluator": {
       "commandName": "Project",
-      "commandLineArgs": "-p ..\\..\\..\\..\\..\\samples\\deny-ports-nsg\\azurepolicy.json -t ..\\..\\..\\..\\..\\samples\\deny-ports-nsg\\deny\\nsg-full-allow-port-22.json"
+      //"commandLineArgs": "-p ..\\..\\..\\..\\..\\..\\samples\\deny-ports-nsg\\azurepolicy.json -t ..\\..\\..\\..\\..\\..\\samples\\deny-ports-nsg\\tests\\nsg-allow-ssh-and-rdp-deny.json",
+      "commandLineArgs": "-w -f ..\\..\\..\\..\\..\\..\\samples\\deny-ports-nsg"
     }
   }
 }

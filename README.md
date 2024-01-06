@@ -251,12 +251,13 @@ Usage:
   ape [options]
 
 Options:
-  -p, --policy <policy>         Policy file to evaluate
-  -t, --test <test>             Test file to use in evaluation
-  -w, --watch                   Watch current folder for policy changes
-  --logging <debug|info|trace>  Logging verbosity [default: info]
-  --version                     Show version information
-  -?, -h, --help                Show help and usage information
+  -p, --policy <policy>              Policy file to evaluate
+  -t, --test <test>                  Test file to use in evaluation
+  -w, --watch                        Watch folder for policy changes
+  -f, --watch-folder <watch-folder>  Override watch folder path
+  --logging <debug|info|trace>       Logging verbosity [default: info]
+  --version                          Show version information
+  -?, -h, --help                     Show help and usage information
 ```
 
 Most common usage is to navigate to the policy folder and then execute:
