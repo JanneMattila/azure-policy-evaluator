@@ -1,7 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
 using System.Text.Json;
-using static AzurePolicyEvaluator.PolicyConstants;
-using System.Linq;
 
 namespace AzurePolicyEvaluator;
 
@@ -211,7 +209,7 @@ public class Evaluator
         if (policy.ValueKind == JsonValueKind.Object)
         {
             // TODO: Fix case sensitivity
-            if (policy.TryGetPropertyIgnoreCasing(LogicalOperators.Not, out var notObject))
+            if (policy.TryGetPropertyIgnoreCasing(PolicyConstants.LogicalOperators.Not, out var notObject))
             {
                 _logger.LogDebug("'not' started");
 
@@ -221,14 +219,14 @@ public class Evaluator
                 _logger.LogDebug($"'not' return condition {result.Condition}");
                 return result;
             }
-            else if (policy.TryGetPropertyIgnoreCasing(LogicalOperators.AnyOf, out var anyOfObject))
+            else if (policy.TryGetPropertyIgnoreCasing(PolicyConstants.LogicalOperators.AnyOf, out var anyOfObject))
             {
                 _logger.LogDebug("'anyOf' started");
 
                 var anyOfChildren = anyOfObject.EnumerateArray();
                 if (!anyOfChildren.Any())
                 {
-                    var error = $"Logical operator {LogicalOperators.AnyOf} must have child elements.";
+                    var error = $"Logical operator {PolicyConstants.LogicalOperators.AnyOf} must have child elements.";
                     _logger.LogError(error);
                     result.Details = error;
                     return result;
@@ -247,14 +245,14 @@ public class Evaluator
                 _logger.LogDebug("'anyOf' return condition {Condition}", result.Condition);
                 return result;
             }
-            else if (policy.TryGetPropertyIgnoreCasing(LogicalOperators.AllOf, out var allOfObject))
+            else if (policy.TryGetPropertyIgnoreCasing(PolicyConstants.LogicalOperators.AllOf, out var allOfObject))
             {
                 _logger.LogDebug("'allOf' started");
 
                 var allOfChildren = allOfObject.EnumerateArray();
                 if (!allOfChildren.Any())
                 {
-                    var error = $"Logical operator {LogicalOperators.AllOf} must have child elements.";
+                    var error = $"Logical operator {PolicyConstants.LogicalOperators.AllOf} must have child elements.";
                     _logger.LogError(error);
                     result.Details = error;
                     return result;
@@ -324,7 +322,7 @@ public class Evaluator
     internal EvaluationResult ExecuteCountEvaluation(JsonElement countObject, EvaluationResult childResult)
     {
         EvaluationResult result = new();
-        if (countObject.TryGetPropertyIgnoreCasing(Conditions.Greater, out var greaterElement))
+        if (countObject.TryGetPropertyIgnoreCasing(PolicyConstants.Conditions.Greater, out var greaterElement))
         {
             if (greaterElement.ValueKind != JsonValueKind.Number)
             {
@@ -337,7 +335,7 @@ public class Evaluator
             result.Condition = childResult.Count > greaterValue;
             _logger.LogDebug("Child count {Count} \"greater\" {Value} is {Condition}", childResult.Count, greaterValue, result.Condition);
         }
-        else if (countObject.TryGetPropertyIgnoreCasing(Conditions.GreaterOrEquals, out var greaterOrEqualsElement))
+        else if (countObject.TryGetPropertyIgnoreCasing(PolicyConstants.Conditions.GreaterOrEquals, out var greaterOrEqualsElement))
         {
             if (greaterOrEqualsElement.ValueKind != JsonValueKind.Number)
             {
@@ -350,7 +348,7 @@ public class Evaluator
             result.Condition = childResult.Count >= greaterOrEqualsValue;
             _logger.LogDebug("Child count {Count} \"greaterOrEquals\" {Value} is {Condition}", childResult.Count, greaterOrEqualsValue, result.Condition);
         }
-        else if (countObject.TryGetPropertyIgnoreCasing(Conditions.Less, out var lessElement))
+        else if (countObject.TryGetPropertyIgnoreCasing(PolicyConstants.Conditions.Less, out var lessElement))
         {
             if (lessElement.ValueKind != JsonValueKind.Number)
             {
@@ -363,7 +361,7 @@ public class Evaluator
             result.Condition = childResult.Count < lessValue;
             _logger.LogDebug("Child count {Count} \"less\" {Value} is {Condition}", childResult.Count, lessValue, result.Condition);
         }
-        else if (countObject.TryGetPropertyIgnoreCasing(Conditions.LessOrEquals, out var lessOrEqualsElement))
+        else if (countObject.TryGetPropertyIgnoreCasing(PolicyConstants.Conditions.LessOrEquals, out var lessOrEqualsElement))
         {
             if (lessOrEqualsElement.ValueKind != JsonValueKind.Number)
             {
@@ -411,7 +409,7 @@ public class Evaluator
 
                     propertyName = propertyName.Substring(type.Length + 1);
 
-                    var properties = test.GetProperty(Properties.Name);
+                    var properties = test.GetProperty(PolicyConstants.Properties.Name);
 
                     if (propertyName.Contains(PolicyConstants.ArrayMemberReference))
                     {
@@ -462,7 +460,7 @@ public class Evaluator
     internal EvaluationResult FieldComparison(JsonElement policy, string propertyName, string propertyValue)
     {
         EvaluationResult result = new();
-        if (policy.TryGetPropertyIgnoreCasing(Conditions.Equals, out var equalsElement))
+        if (policy.TryGetPropertyIgnoreCasing(PolicyConstants.Conditions.Equals, out var equalsElement))
         {
             var equalsValue = equalsElement.GetString();
             ArgumentNullException.ThrowIfNull(equalsValue);
@@ -471,7 +469,7 @@ public class Evaluator
             result.Condition = propertyValue == value;
             _logger.LogDebug("Property {PropertyName} \"equals\" {EqualsValue} is {Condition}", propertyName, equalsValue, result.Condition);
         }
-        else if (policy.TryGetPropertyIgnoreCasing(Conditions.NotEquals, out var notEqualsElement))
+        else if (policy.TryGetPropertyIgnoreCasing(PolicyConstants.Conditions.NotEquals, out var notEqualsElement))
         {
             var notEqualsValue = notEqualsElement.GetString();
             ArgumentNullException.ThrowIfNull(notEqualsValue);
@@ -481,7 +479,7 @@ public class Evaluator
 
             _logger.LogDebug("Property {PropertyName} \"notEquals\" {NotEqualsValue} is {Condition}", propertyName, notEqualsValue, result.Condition);
         }
-        else if (policy.TryGetPropertyIgnoreCasing(Conditions.In, out var inElement))
+        else if (policy.TryGetPropertyIgnoreCasing(PolicyConstants.Conditions.In, out var inElement))
         {
             var inValue = inElement.GetString();
             ArgumentNullException.ThrowIfNull(inValue);
@@ -492,7 +490,7 @@ public class Evaluator
 
             _logger.LogDebug("Property {PropertyName} \"in\" {InValue} is {Condition}", propertyName, inValue, result.Condition);
         }
-        else if (policy.TryGetPropertyIgnoreCasing(Conditions.NotIn, out var notInElement))
+        else if (policy.TryGetPropertyIgnoreCasing(PolicyConstants.Conditions.NotIn, out var notInElement))
         {
             var notInValue = notInElement.GetString();
             ArgumentNullException.ThrowIfNull(notInValue);
@@ -513,19 +511,19 @@ public class Evaluator
     internal object RunTemplateFunctions(string text)
     {
         // From: https://learn.microsoft.com/en-us/azure/azure-resource-manager/templates/template-functions
-        if (text.StartsWith(TemplateFunctions.StartMarker))
+        if (text.StartsWith(PolicyConstants.TemplateFunctions.StartMarker))
         {
             text = text.Substring(1, text.Length - 2);
 
-            var startIndex = text.IndexOf(TemplateFunctions.StartFunction);
-            var endIndex = text.LastIndexOf(TemplateFunctions.EndFunction);
+            var startIndex = text.IndexOf(PolicyConstants.TemplateFunctions.StartFunction);
+            var endIndex = text.LastIndexOf(PolicyConstants.TemplateFunctions.EndFunction);
             var function = text.Substring(0, startIndex);
             var functionParameters = text.Substring(startIndex + 1, endIndex - startIndex - 1);
             var parameters = RunTemplateFunctions(functionParameters);
 
             switch (function)
             {
-                case TemplateFunctions.Parameters:
+                case PolicyConstants.TemplateFunctions.Parameters:
                     var requiredParameter = _parameters.FirstOrDefault(o => o.Name == parameters.ToString());
                     if (requiredParameter == null)
                     {
@@ -534,14 +532,14 @@ public class Evaluator
                     ArgumentNullException.ThrowIfNull(requiredParameter.DefaultValue);
                     return requiredParameter.DefaultValue;
 
-                case TemplateFunctions.Concat:
+                case PolicyConstants.TemplateFunctions.Concat:
                     var concatParameters = parameters as List<string>;
                     ArgumentNullException.ThrowIfNull(concatParameters);
                     text = string.Join(string.Empty, concatParameters);
                     break;
             }
         }
-        else if (text.StartsWith(TemplateFunctions.StringMarker) && text.EndsWith(TemplateFunctions.StringMarker))
+        else if (text.StartsWith(PolicyConstants.TemplateFunctions.StringMarker) && text.EndsWith(PolicyConstants.TemplateFunctions.StringMarker))
         {
             text = text.Substring(1, text.Length - 2);
         }
@@ -605,7 +603,7 @@ public class Evaluator
                 {
                     // TODO: Handle arrays and results
                     string? propertyValue = null;
-                    var properties = item.GetProperty(Properties.Name);
+                    var properties = item.GetProperty(PolicyConstants.Properties.Name);
 
                     if (!properties.TryGetPropertyIgnoreCasing(nextName, out var propertyElement))
                     {
