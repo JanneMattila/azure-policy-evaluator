@@ -7,7 +7,7 @@ public class AliasRepositoryTests
     public void AliasTests(string alias, bool expected, string expectedPath)
     {
         // Arrange
-        var aliasRepository = new AliasRepository(); ;
+        var aliasRepository = new AliasRepository();
 
         // Act
         var actual = aliasRepository.TryGetAlias(alias, out var actualPath);

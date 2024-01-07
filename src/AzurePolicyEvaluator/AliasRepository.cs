@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Text.Json;
 
 namespace AzurePolicyEvaluator;
 
@@ -6,7 +7,8 @@ public class AliasRepository
 {
     internal Dictionary<string, string> _aliasCache { get; set; } = [];
 
-    //[RequiresUnreferencedCode("Uses JSON deserialization")]
+    [RequiresUnreferencedCode("Uses JSON deserialization")]
+    [RequiresDynamicCode("Uses JSON deserialization")]
     public bool TryGetAlias(string alias, out string path)
     {
         path = string.Empty;
@@ -17,7 +19,8 @@ public class AliasRepository
         }
 
         var allPolicyAliases = JsonSerializer.Deserialize<Dictionary<string, string>>(AliasResources.PolicyAliases);
-        if (allPolicyAliases.ContainsKey(alias))
+        if (allPolicyAliases != null &&
+            allPolicyAliases.ContainsKey(alias))
         {
             path = allPolicyAliases[alias];
             _aliasCache.Add(alias, path);
