@@ -17,6 +17,9 @@
     <RepositoryUrl>https://github.com/JanneMattila/azure-policy-evaluator</RepositoryUrl>
     <AssemblyName>ape</AssemblyName>
 	<VersionPrefix>0.0.1</VersionPrefix>
+	<ProduceReferenceAssembly>False</ProduceReferenceAssembly>
+	<Trimming>full</Trimming>
+	<CheckForOverflowUnderflow>True</CheckForOverflowUnderflow>
   </PropertyGroup>
 
   <ItemGroup>

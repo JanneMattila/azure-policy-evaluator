@@ -1,7 +1,5 @@
 using Microsoft.Extensions.Logging.Abstractions;
-using System.Collections.Generic;
 using System.Text.Json;
-using System.Text.Json.Nodes;
 
 namespace AzurePolicyEvaluatorTests;
 
@@ -13,7 +11,7 @@ public class BasicEvaluatorTests
         // Arrange
         var policy = string.Empty;
         var test = string.Empty;
-        var evaluator = new Evaluator(NullLogger<Evaluator>.Instance);
+        var evaluator = new Evaluator(NullLogger<Evaluator>.Instance, new(NullLogger<AliasRepository>.Instance));
 
         // Act
         var evaluationResult = evaluator.Evaluate(policy, test);
@@ -28,7 +26,7 @@ public class BasicEvaluatorTests
         // Arrange
         var policy = "{ }";
         var test = string.Empty;
-        var evaluator = new Evaluator(NullLogger<Evaluator>.Instance);
+        var evaluator = new Evaluator(NullLogger<Evaluator>.Instance, new(NullLogger<AliasRepository>.Instance));
 
         // Act
         var evaluationResult = evaluator.Evaluate(policy, test);
@@ -47,7 +45,7 @@ public class BasicEvaluatorTests
         var expectedName = "effect";
         var expectedValue = "Audit";
 
-        var evaluator = new Evaluator(NullLogger<Evaluator>.Instance);
+        var evaluator = new Evaluator(NullLogger<Evaluator>.Instance, new(NullLogger<AliasRepository>.Instance));
 
         // Act
         var parametersList = evaluator.ParseParameters(parameters);
@@ -67,7 +65,7 @@ public class BasicEvaluatorTests
         var expectedParameters = 1;
         var expectedListSize = 2;
 
-        var evaluator = new Evaluator(NullLogger<Evaluator>.Instance);
+        var evaluator = new Evaluator(NullLogger<Evaluator>.Instance, new(NullLogger<AliasRepository>.Instance));
 
         // Act
         var parametersList = evaluator.ParseParameters(parameters);
@@ -84,7 +82,7 @@ public class BasicEvaluatorTests
     {
         // Arrange
         var expected = "westus";
-        var evaluator = new Evaluator(NullLogger<Evaluator>.Instance);
+        var evaluator = new Evaluator(NullLogger<Evaluator>.Instance, new(NullLogger<AliasRepository>.Instance));
         evaluator._parameters.Add(new Parameter { Name = "location", DefaultValue = "westus" });
 
         // Act
@@ -122,10 +120,10 @@ public class BasicEvaluatorTests
 
         var fieldElement = fieldDocument.RootElement.GetProperty("field");
 
-        var evaluator = new Evaluator(NullLogger<Evaluator>.Instance);
+        var evaluator = new Evaluator(NullLogger<Evaluator>.Instance, new(NullLogger<AliasRepository>.Instance));
 
         // Act
-        var evaluationResult = evaluator.ExecuteFieldEvaluation(fieldElement, fieldDocument.RootElement, test.RootElement);
+        var evaluationResult = evaluator.ExecutePropertyEvaluation(fieldElement.GetString(), fieldDocument.RootElement, test.RootElement);
 
         // Assert
         Assert.True(evaluationResult.Condition);
@@ -143,10 +141,10 @@ public class BasicEvaluatorTests
 
         var fieldElement = fieldDocument.RootElement.GetProperty("field");
 
-        var evaluator = new Evaluator(NullLogger<Evaluator>.Instance);
+        var evaluator = new Evaluator(NullLogger<Evaluator>.Instance, new(NullLogger<AliasRepository>.Instance));
 
         // Act
-        var evaluationResult = evaluator.ExecuteFieldEvaluation(fieldElement, fieldDocument.RootElement, test.RootElement);
+        var evaluationResult = evaluator.ExecutePropertyEvaluation(fieldElement.GetString(), fieldDocument.RootElement, test.RootElement);
 
         // Assert
         Assert.True(evaluationResult.Condition);

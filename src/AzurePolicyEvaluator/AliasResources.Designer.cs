@@ -61,12 +61,18 @@ namespace AzurePolicyEvaluator {
         }
         
         /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
+        ///   Looks up a localized string similar to Microsoft.AAD/domainServices/tenantId,properties.tenantId
+        ///Microsoft.AAD/domainServices/domainName,properties.domainName
+        ///Microsoft.AAD/domainServices/deploymentId,properties.deploymentId
+        ///Microsoft.AAD/domainServices/vnetSiteId,properties.vnetSiteId
+        ///Microsoft.AAD/domainServices/subnetId,properties.subnetId
+        ///Microsoft.AAD/domainServices/ldapsSettings,properties.ldapsSettings
+        ///Microsoft.AAD/domainServices/ldapsSettings.ldaps,properties.ldapsSettings.ldaps
+        ///Microsoft.AAD/domainServices/ldapsSettings.pfxCerti [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static byte[] PolicyAliases {
+        internal static string PolicyAliases {
             get {
-                object obj = ResourceManager.GetObject("PolicyAliases", resourceCulture);
-                return ((byte[])(obj));
+                return ResourceManager.GetString("PolicyAliases", resourceCulture);
             }
         }
     }

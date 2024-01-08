@@ -1,30 +1,53 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using System.Text.Json;
+﻿using Microsoft.Extensions.Logging;
+using System.Diagnostics;
 
 namespace AzurePolicyEvaluator;
 
 public class AliasRepository
 {
     internal Dictionary<string, string> _aliasCache { get; set; } = [];
+    private readonly ILogger<AliasRepository> _logger;
 
-    [RequiresUnreferencedCode("Uses JSON deserialization")]
-    [RequiresDynamicCode("Uses JSON deserialization")]
+    public AliasRepository(ILogger<AliasRepository> logger)
+    {
+        _logger = logger;
+    }
+
     public bool TryGetAlias(string alias, out string path)
     {
+        var aliasLower = alias.ToLower();
         path = string.Empty;
-        if (_aliasCache.ContainsKey(alias))
+
+        if (_aliasCache.Count == 0)
         {
-            path = _aliasCache[alias];
-            return true;
+            _logger.LogDebug("Started alias cache population");
+
+            var stopwatch = Stopwatch.StartNew();
+            foreach (var line in AliasResources.PolicyAliases.Split("\r\n"))
+            {
+                var aliases = line.Split(',');
+                var key = aliases[0].ToLower();
+                if (_aliasCache.ContainsKey(key))
+                {
+                    continue;
+                }
+                _aliasCache.Add(key, aliases[1]);
+            }
+
+            stopwatch.Stop();
+            _logger.LogDebug("Finished alias cache population in {ElapsedMilliseconds} ms", stopwatch.ElapsedMilliseconds);
         }
 
-        var allPolicyAliases = JsonSerializer.Deserialize<Dictionary<string, string>>(AliasResources.PolicyAliases);
-        if (allPolicyAliases != null &&
-            allPolicyAliases.ContainsKey(alias))
+        if (_aliasCache.TryGetValue(aliasLower, out string? value))
         {
-            path = allPolicyAliases[alias];
-            _aliasCache.Add(alias, path);
+            _logger.LogDebug("Alias {Alias} found in cache {Path}", alias, value);
+
+            path = value;
             return true;
+        }
+        else
+        {
+            _logger.LogDebug("Alias {Alias} not found in cache", alias);
         }
 
         return false;

@@ -15,7 +15,7 @@ public class CountEvaluationTests
             ""greater"": ""1""
         }");
 
-        var evaluator = new Evaluator(NullLogger<Evaluator>.Instance);
+        var evaluator = new Evaluator(NullLogger<Evaluator>.Instance, new(NullLogger<AliasRepository>.Instance));
 
         // Act
         var evaluationResult = evaluator.ExecuteCountEvaluation(fieldDocument.RootElement, new());
@@ -39,7 +39,7 @@ public class CountEvaluationTests
         var operationElement = JsonDocument.Parse($"{{ \"{operation}\": {operationValue} }}");
         var result = new EvaluationResult() { Count = childCount };
 
-        var evaluator = new Evaluator(NullLogger<Evaluator>.Instance);
+        var evaluator = new Evaluator(NullLogger<Evaluator>.Instance, new(NullLogger<AliasRepository>.Instance));
 
         // Act
         var evaluationResult = evaluator.ExecuteCountEvaluation(operationElement.RootElement, result);

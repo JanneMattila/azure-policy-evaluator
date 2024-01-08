@@ -61,3 +61,16 @@ foreach ($provider in $providers) {
 }
 
 $policyAliases | ConvertTo-Json -Depth 10 | Out-File -FilePath .\policy-aliases.json
+
+# Option 3: CSV format
+foreach ($provider in $providers) {
+    foreach ($alias in $provider.Aliases) {
+        if ([string]::IsNullOrEmpty($alias.Name)) {
+            continue
+        }
+        if ([string]::IsNullOrEmpty($alias.DefaultPath)) {
+            continue
+        }
+        $alias.Name + "," + $alias.DefaultPath | Out-File -FilePath .\policy-aliases.csv -Append
+    }
+}

@@ -74,6 +74,7 @@ rootCommand.SetHandler(async (policyFile, testFile, watch, folder, logging) =>
             options.TimestampFormat = "HH:mm:ss ";
         });
     });
+    services.AddSingleton<AliasRepository>();
     services.AddSingleton<Evaluator>();
     serviceProvider = services.BuildServiceProvider();
 

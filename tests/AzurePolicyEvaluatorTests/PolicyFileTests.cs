@@ -1,7 +1,4 @@
 using Microsoft.Extensions.Logging.Abstractions;
-using System.Collections.Generic;
-using System.Text.Json;
-using System.Text.Json.Nodes;
 
 namespace AzurePolicyEvaluatorTests;
 
@@ -14,7 +11,7 @@ public class PolicyFileTests
         var expected = PolicyConstants.Effects.Audit;
         var policy = BasicResources.Policy_NSG_DenyPorts;
         var test = BasicResources.NSG_AllowSSHandRDP;
-        var evaluator = new Evaluator(NullLogger<Evaluator>.Instance);
+        var evaluator = new Evaluator(NullLogger<Evaluator>.Instance, new(NullLogger<AliasRepository>.Instance));
 
         // Act
         var evaluationResult = evaluator.Evaluate(policy, test);
@@ -32,7 +29,7 @@ public class PolicyFileTests
         var expected = PolicyConstants.Effects.Audit;
         var policy = BasicResources.Policy_NSG_DenyPorts;
         var test = BasicResources.SecurityRule_AllowSSH;
-        var evaluator = new Evaluator(NullLogger<Evaluator>.Instance);
+        var evaluator = new Evaluator(NullLogger<Evaluator>.Instance, new(NullLogger<AliasRepository>.Instance));
 
         // Act
         var evaluationResult = evaluator.Evaluate(policy, test);
@@ -49,7 +46,7 @@ public class PolicyFileTests
         var expected = PolicyConstants.Effects.None;
         var policy = BasicResources.Policy_Location_List;
         var test = BasicResources.NSG_AllowSSHandRDP;
-        var evaluator = new Evaluator(NullLogger<Evaluator>.Instance);
+        var evaluator = new Evaluator(NullLogger<Evaluator>.Instance, new(NullLogger<AliasRepository>.Instance));
 
         // Act
         var evaluationResult = evaluator.Evaluate(policy, test);

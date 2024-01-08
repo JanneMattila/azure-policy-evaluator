@@ -18,7 +18,7 @@
             "sourcePortRanges": [],
             "destinationPortRanges": [],
             "sourceAddressPrefixes": [],
-            "destinationAddressPrefixes": []
+            "destinationAddressPrefixes": [ "10.0.0.4" ]
           }
         },
         {
@@ -35,7 +35,7 @@
             "sourcePortRanges": [],
             "destinationPortRanges": [],
             "sourceAddressPrefixes": [],
-            "destinationAddressPrefixes": []
+            "destinationAddressPrefixes": [ "10.0.0.4" ]
           }
         }
       ]

@@ -1,0 +1,46 @@
+{
+    "name": "lb1",
+    "id": "/subscriptions/a4c543be-629b-4c08-bd00-14520e74e1d3/resourceGroups/rg-load-balancers/providers/Microsoft.Network/loadBalancers/lb1",
+    "etag": "W/\"289ebe64-6a25-4ef3-a7f0-5a43553a13ee\"",
+    "type": "Microsoft.Network/loadBalancers",
+    "location": "northeurope",
+    "tags": {},
+    "properties": {
+        "provisioningState": "Succeeded",
+        "resourceGuid": "06c0e480-8147-451b-822d-3e8e12195995",
+        "frontendIPConfigurations": [
+            {
+                "name": "ip1",
+                "id": "/subscriptions/a4c543be-629b-4c08-bd00-14520e74e1d3/resourceGroups/rg-load-balancers/providers/Microsoft.Network/loadBalancers/lb1/frontendIPConfigurations/ip1",
+                "etag": "W/\"289ebe64-6a25-4ef3-a7f0-5a43553a13ee\"",
+                "type": "Microsoft.Network/loadBalancers/frontendIPConfigurations",
+                "properties": {
+                    "provisioningState": "Succeeded",
+                    "privateIPAddress": "10.0.0.50",
+                    "privateIPAllocationMethod": "Static",
+                    "subnet": {
+                        "id": "/subscriptions/a4c543be-629b-4c08-bd00-14520e74e1d3/resourceGroups/rg-load-balancers/providers/Microsoft.Network/virtualNetworks/vnet/subnets/snet-1"
+                    }
+                }
+            }
+        ],
+        "backendAddressPools": [
+            {
+                "name": "backend1",
+                "id": "/subscriptions/a4c543be-629b-4c08-bd00-14520e74e1d3/resourceGroups/rg-load-balancers/providers/Microsoft.Network/loadBalancers/lb1/backendAddressPools/backend1",
+                "etag": "W/\"289ebe64-6a25-4ef3-a7f0-5a43553a13ee\"",
+                "properties": {
+                    "provisioningState": "Succeeded"
+                },
+                "type": "Microsoft.Network/loadBalancers/backendAddressPools"
+            }
+        ],
+        "loadBalancingRules": [],
+        "probes": [],
+        "inboundNatRules": [],
+        "inboundNatPools": []
+    },
+    "sku": {
+        "name": "Basic"
+    }
+}

@@ -1,16 +1,19 @@
 ﻿using Microsoft.Extensions.Logging;
 using System.Text.Json;
+using static AzurePolicyEvaluator.PolicyConstants;
 
 namespace AzurePolicyEvaluator;
 
 public class Evaluator
 {
     private readonly ILogger<Evaluator> _logger;
+    internal AliasRepository _aliasRepository;
     internal List<Parameter> _parameters = [];
 
-    public Evaluator(ILogger<Evaluator> logger)
+    public Evaluator(ILogger<Evaluator> logger, AliasRepository aliasRepository)
     {
         _logger = logger;
+        _aliasRepository = aliasRepository;
     }
 
     public EvaluationResult Evaluate(string policy, string test)
@@ -286,7 +289,8 @@ public class Evaluator
 
                 var hasWhereProperty = countObject.TryGetPropertyIgnoreCasing(PolicyConstants.Where, out var whereObject);
 
-                result = ExecuteFieldEvaluation(fieldObject, policy, test);
+                var propertyPath = fieldObject.GetString();
+                result = ExecutePropertyEvaluation(propertyPath, policy, test);
                 if (hasWhereProperty)
                 {
                     var results = ExecuteEvaluation(level + 1, whereObject, test);
@@ -303,7 +307,8 @@ public class Evaluator
             {
                 _logger.LogDebug("'field' started");
 
-                result = ExecuteFieldEvaluation(fieldObject, policy, test);
+                var propertyPath = fieldObject.GetString();
+                result = ExecutePropertyEvaluation(propertyPath, policy, test);
 
                 _logger.LogDebug("'field' return condition {Condition}", result.Condition);
                 return result;
@@ -383,76 +388,59 @@ public class Evaluator
         return result;
     }
 
-    internal EvaluationResult ExecuteFieldEvaluation(JsonElement fieldObject, JsonElement policy, JsonElement test)
+    internal EvaluationResult ExecutePropertyEvaluation(string? propertyPath, JsonElement policy, JsonElement test)
     {
+        ArgumentNullException.ThrowIfNull(propertyPath, nameof(propertyPath));
+
         var result = new EvaluationResult();
         var details = string.Empty;
-        if (fieldObject.ValueKind == JsonValueKind.String)
+        string? propertyValue = null;
+
+        if (_aliasRepository.TryGetAlias(propertyPath, out var alias))
         {
-            var propertyName = fieldObject.GetString();
-            if (!string.IsNullOrEmpty(propertyName))
+            _logger.LogDebug("Property path {PropertyPath} is alias to {Alias}", propertyPath, alias);
+            propertyPath = alias;
+        }
+
+        var properties = test;
+        while (propertyPath.Contains('.'))
+        {
+            var index = propertyPath.IndexOf('.');
+            var name = propertyPath.Substring(0, index);
+
+            if (name.EndsWith(PolicyConstants.ArrayMemberReference))
             {
-                string? propertyValue = null;
-                if (propertyName.Contains('/'))
-                {
-                    _logger.LogDebug("Property {PropertyName} is resource property", propertyName);
+                var results = ExecuteArrayEvaluation(propertyPath, properties, policy);
 
-                    var type = test.GetProperty(PolicyConstants.Type).GetString();
-                    ArgumentNullException.ThrowIfNull(type);
-
-                    if (!propertyName.StartsWith(type))
-                    {
-                        // Property name does not start with the resource type.
-                        result.Condition = false;
-                        return result;
-                    }
-
-                    propertyName = propertyName.Substring(type.Length + 1);
-
-                    var properties = test.GetProperty(PolicyConstants.Properties.Name);
-
-                    if (propertyName.Contains(PolicyConstants.ArrayMemberReference))
-                    {
-                        var results = ExecuteArrayFieldEvaluation(propertyName, properties, fieldObject, policy, test);
-
-                        // From:https://learn.microsoft.com/en-us/azure/governance/policy/how-to/author-policies-for-arrays#referencing-the-array-members-collection
-                        result.Condition = results.Any(o => o.Condition);
-                        result.Count = results.Count(o => o.Condition);
-                        return result;
-                    }
-                    else
-                    {
-                        if (!properties.TryGetPropertyIgnoreCasing(propertyName, out var propertyElement))
-                        {
-                            // No property with the given name exists in the test file.
-                            result.Condition = false;
-                            return result;
-                        }
-
-                        propertyValue = propertyElement.GetString();
-                    }
-                }
-                else
-                {
-                    if (!test.TryGetPropertyIgnoreCasing(propertyName, out var propertyElement))
-                    {
-                        // No property with the given name exists in the test file.
-                        result.Condition = false;
-                        return result;
-                    }
-
-                    propertyValue = propertyElement.GetString();
-                }
-
-                ArgumentNullException.ThrowIfNull(propertyValue);
-
-                result = FieldComparison(policy, propertyName, propertyValue);
+                // From:https://learn.microsoft.com/en-us/azure/governance/policy/how-to/author-policies-for-arrays#referencing-the-array-members-collection
+                result.Condition = results.Any(o => o.Condition);
+                result.Count = results.Count(o => o.Condition);
+                return result;
             }
+
+            if (!properties.TryGetPropertyIgnoreCasing(name, out var subPropertyElement))
+            {
+                // No property with the given name exists in the test file.
+                result.Condition = false;
+                return result;
+            }
+
+            propertyPath = propertyPath.Substring(index + 1);
+            properties = subPropertyElement;
         }
-        else
+
+        if (!properties.TryGetPropertyIgnoreCasing(propertyPath, out var propertyElement))
         {
-            throw new NotImplementedException($"Field type {fieldObject.ValueKind} is not implemented.");
+            // No property with the given name exists in the test file.
+            result.Condition = false;
+            return result;
         }
+
+        propertyValue = propertyElement.GetString();
+
+        ArgumentNullException.ThrowIfNull(propertyValue);
+
+        result = FieldComparison(policy, propertyPath, propertyValue);
 
         return result;
     }
@@ -547,11 +535,11 @@ public class Evaluator
         return text;
     }
 
-    internal List<EvaluationResult> ExecuteArrayFieldEvaluation(string propertyName, JsonElement propertiesElement, JsonElement fieldObject, JsonElement policy, JsonElement test)
+    internal List<EvaluationResult> ExecuteArrayEvaluation(string propertyPath, JsonElement arrayElement, JsonElement policy)
     {
         var results = new List<EvaluationResult>();
-        var arrayName = propertyName.Substring(0, propertyName.IndexOf(PolicyConstants.ArrayMemberReference));
-        if (!propertiesElement.TryGetPropertyIgnoreCasing(arrayName, out var arrayPropertyElement))
+        var arrayName = propertyPath.Substring(0, propertyPath.IndexOf(PolicyConstants.ArrayMemberReference));
+        if (!arrayElement.TryGetPropertyIgnoreCasing(arrayName, out var arrayPropertyElement))
         {
             // No array property with the given name exists in the test file.
             results.Add(new EvaluationResult
@@ -572,8 +560,7 @@ public class Evaluator
             return results;
         }
 
-        var nextName = propertyName.Substring(propertyName.IndexOf(PolicyConstants.ArrayMemberReference) + PolicyConstants.ArrayMemberReference.Length);
-
+        var nextName = propertyPath.Substring(propertyPath.IndexOf(PolicyConstants.ArrayMemberReference) + PolicyConstants.ArrayMemberReference.Length);
         if (nextName.Length == 0)
         {
             // Process array itself
@@ -583,47 +570,14 @@ public class Evaluator
         }
         else
         {
+            // Process array members
             nextName = nextName.Substring(1);
-            if (nextName.Contains(PolicyConstants.ArrayMemberReference))
+            foreach (var item in arrayProperty)
             {
-                // Process nested array
-                _logger.LogWarning("nested array processing in work-in-progress");
-
-                foreach (var item in arrayProperty)
-                {
-                    // TODO: Handle nested arrays and results
-                    var result = ExecuteArrayFieldEvaluation(nextName, item, fieldObject, policy, test);
-                    results.AddRange(result);
-                }
-            }
-            else
-            {
-                // Process array members
-                foreach (var item in arrayProperty)
-                {
-                    // TODO: Handle arrays and results
-                    string? propertyValue = null;
-                    var properties = item.GetProperty(PolicyConstants.Properties.Name);
-
-                    if (!properties.TryGetPropertyIgnoreCasing(nextName, out var propertyElement))
-                    {
-                        // No property with the given name exists in the test file.
-                        results.Add(new EvaluationResult
-                        {
-                            Condition = false
-                        });
-                        continue;
-                    }
-
-                    propertyValue = propertyElement.GetString();
-                    ArgumentNullException.ThrowIfNull(propertyValue);
-
-                    var result = FieldComparison(policy, nextName, propertyValue);
-                    results.Add(result);
-                }
+                var result = ExecutePropertyEvaluation(nextName, policy, item);
+                results.Add(result);
             }
         }
-
         return results;
     }
 }
