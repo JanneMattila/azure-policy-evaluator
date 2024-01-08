@@ -23,7 +23,7 @@ public class AliasRepository
             _logger.LogDebug("Started alias cache population");
 
             var stopwatch = Stopwatch.StartNew();
-            foreach (var line in AliasResources.PolicyAliases.Split("\r\n"))
+            foreach (var line in AliasResources.PolicyAliases.Split(Environment.NewLine))
             {
                 var aliases = line.Split(',');
                 var key = aliases[0].ToLower();
