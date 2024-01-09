@@ -1,5 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using System.Diagnostics;
+using System.IO.Compression;
+using System.Text;
 
 namespace AzurePolicyEvaluator;
 
@@ -23,7 +25,16 @@ public class AliasRepository
             _logger.LogDebug("Started alias cache population");
 
             var stopwatch = Stopwatch.StartNew();
-            foreach (var line in AliasResources.PolicyAliases.Split(Environment.NewLine))
+
+            using var sourceStream = new MemoryStream(AliasResources.PolicyAliases);
+            using var targetStream = new MemoryStream();
+            using var gzip = new GZipStream(sourceStream, CompressionMode.Decompress);
+            gzip.CopyTo(targetStream);
+
+            var encoding = new UTF8Encoding();
+            string policyAliases = encoding.GetString(targetStream.ToArray(), 0, targetStream.ToArray().Length);
+
+            foreach (var line in policyAliases.Split(Environment.NewLine))
             {
                 var aliases = line.Split(',');
                 var key = aliases[0].ToLower();
@@ -35,7 +46,7 @@ public class AliasRepository
             }
 
             stopwatch.Stop();
-            _logger.LogDebug("Finished alias cache population in {ElapsedMilliseconds} ms", stopwatch.ElapsedMilliseconds);
+            _logger.LogDebug("Finished alias cache population in {ElapsedMilliseconds} ms and {Count} items", stopwatch.ElapsedMilliseconds, _aliasCache.Count);
         }
 
         if (_aliasCache.TryGetValue(aliasLower, out string? value))

@@ -74,3 +74,12 @@ foreach ($provider in $providers) {
         $alias.Name + "," + $alias.DefaultPath | Out-File -FilePath .\policy-aliases.csv -Append
     }
 }
+
+# GZip compressed CSV format
+$sourcetream = New-Object System.IO.FileStream("docs\policy-aliases.csv", ([IO.FileMode]::Open), ([IO.FileAccess]::Read), ([IO.FileShare]::Read))
+$targetStream = New-Object System.IO.FileStream("docs\policy-aliases.gz", ([IO.FileMode]::Create), ([IO.FileAccess]::Write), ([IO.FileShare]::None))
+$gzip = New-Object System.IO.Compression.GZipStream($targetStream, [System.IO.Compression.CompressionMode]::Compress)
+$sourcetream.CopyTo($gzip)
+$gzip.Dispose()
+$sourcetream.Dispose()
+$targetStream.Dispose()
