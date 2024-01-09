@@ -34,7 +34,7 @@ public class AliasRepository
             var encoding = new UTF8Encoding();
             string policyAliases = encoding.GetString(targetStream.ToArray(), 0, targetStream.ToArray().Length);
 
-            foreach (var line in policyAliases.Split(Environment.NewLine))
+            foreach (var line in policyAliases.Split("\r\n"))
             {
                 var aliases = line.Split(',');
                 var key = aliases[0].ToLower();
