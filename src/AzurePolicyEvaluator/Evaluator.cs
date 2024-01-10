@@ -147,7 +147,7 @@ public class Evaluator
                     Type = type
                 };
 
-                _logger.LogDebug("Parsing parameter {Name} of type {Type}", parameter.Name, type);
+                _logger.LogDebug("Parsing parameter '{Name}' of type '{Type}'", parameter.Name, type);
 
                 var hasDefaultValue = parameter.Value.TryGetPropertyIgnoreCasing(PolicyConstants.Parameters.DefaultValue, out var defaultValue);
 
@@ -398,7 +398,7 @@ public class Evaluator
 
         if (_aliasRepository.TryGetAlias(propertyPath, out var alias))
         {
-            _logger.LogDebug("Property path {PropertyPath} is alias to {Alias}", propertyPath, alias);
+            _logger.LogDebug("Property path '{PropertyPath}' is alias to '{Alias}'", propertyPath, alias);
             propertyPath = alias;
         }
 
@@ -421,8 +421,14 @@ public class Evaluator
             if (!properties.TryGetPropertyIgnoreCasing(name, out var subPropertyElement))
             {
                 // No property with the given name exists in the test file.
+                _logger.LogDebug("Property '{PropertyPath}' not found", propertyPath);
+
                 result.Condition = false;
                 return result;
+            }
+            else
+            {
+                _logger.LogDebug("Property '{PropertyPath}' found", propertyPath);
             }
 
             propertyPath = propertyPath.Substring(index + 1);
@@ -432,6 +438,8 @@ public class Evaluator
         if (!properties.TryGetPropertyIgnoreCasing(propertyPath, out var propertyElement))
         {
             // No property with the given name exists in the test file.
+            _logger.LogDebug("Property '{PropertyPath}' could not be found", propertyPath);
+
             result.Condition = false;
             return result;
         }
@@ -448,6 +456,8 @@ public class Evaluator
     internal EvaluationResult FieldComparison(JsonElement policy, string propertyName, string propertyValue)
     {
         EvaluationResult result = new();
+        _logger.LogDebug("Field comparison for '{PropertyName}' with value '{EqualsValue}'", propertyName, propertyValue);
+
         if (policy.TryGetPropertyIgnoreCasing(PolicyConstants.Conditions.Equals, out var equalsElement))
         {
             var equalsValue = equalsElement.GetString();
@@ -455,7 +465,8 @@ public class Evaluator
 
             var value = RunTemplateFunctions(equalsValue)?.ToString();
             result.Condition = propertyValue == value;
-            _logger.LogDebug("Property {PropertyName} \"equals\" {EqualsValue} is {Condition}", propertyName, equalsValue, result.Condition);
+
+            _logger.LogDebug("Property '{PropertyName}' with value '{PropertyValue}' \"equals\" '{NotEqualsValue}' is '{Condition}'", propertyName, propertyValue, equalsValue, result.Condition);
         }
         else if (policy.TryGetPropertyIgnoreCasing(PolicyConstants.Conditions.NotEquals, out var notEqualsElement))
         {
@@ -465,18 +476,59 @@ public class Evaluator
             var value = RunTemplateFunctions(notEqualsValue)?.ToString();
             result.Condition = propertyValue != value;
 
-            _logger.LogDebug("Property {PropertyName} \"notEquals\" {NotEqualsValue} is {Condition}", propertyName, notEqualsValue, result.Condition);
+            _logger.LogDebug("Property '{PropertyName}' with value '{PropertyValue}' \"notEquals\" '{NotEqualsValue}' is '{Condition}'", propertyName, propertyValue, notEqualsValue, result.Condition);
+        }
+        else if (policy.TryGetPropertyIgnoreCasing(PolicyConstants.Conditions.Contains, out var containsElement))
+        {
+            var containsValue = containsElement.GetString();
+            ArgumentNullException.ThrowIfNull(containsValue);
+
+            var value = RunTemplateFunctions(containsValue)?.ToString();
+            ArgumentNullException.ThrowIfNull(value);
+
+            result.Condition = propertyValue.Contains(value);
+
+            _logger.LogDebug("Property '{PropertyName}' with value '{PropertyValue}' \"contains\" '{ContainsValue}' is '{Condition}'", propertyName, propertyValue, containsValue, result.Condition);
         }
         else if (policy.TryGetPropertyIgnoreCasing(PolicyConstants.Conditions.In, out var inElement))
         {
-            var inValue = inElement.GetString();
-            ArgumentNullException.ThrowIfNull(inValue);
-
-            var list = RunTemplateFunctions(inValue) as List<string>;
+            List<string> list;
+            if (inElement.ValueKind == JsonValueKind.String)
+            {
+                var value = inElement.GetString();
+                ArgumentNullException.ThrowIfNull(value);
+                var listValue = RunTemplateFunctions(value) as List<string>;
+                ArgumentNullException.ThrowIfNull(listValue);
+                list = listValue;
+            }
+            else if (inElement.ValueKind == JsonValueKind.Array)
+            {
+                var listValue = inElement.EnumerateArray()
+                    .Select(o => o.GetString())
+                    .ToList();
+                ArgumentNullException.ThrowIfNull(listValue);
+                list = [];
+                foreach(var item in listValue)
+                {
+                    if (item == null)
+                    {
+                        var error = "Null values are not supported in 'in' expression.";
+                        _logger.LogError(error);
+                        result.Details = error;
+                        return result;
+                    }
+                    list.Add(item);
+                }
+            }
+            else
+            {
+                _logger.LogError("Unknown 'in' expression type '{Type}'.", inElement.ValueKind);
+                return result;
+            }
             ArgumentNullException.ThrowIfNull(list, nameof(list));
             result.Condition = list.Contains(propertyValue);
 
-            _logger.LogDebug("Property {PropertyName} \"in\" {InValue} is {Condition}", propertyName, inValue, result.Condition);
+            _logger.LogDebug("Property '{PropertyName}' with value '{PropertyValue}' \"in\" '{InValue}' is '{Condition}'", propertyName, propertyValue, string.Join(',', list), result.Condition);
         }
         else if (policy.TryGetPropertyIgnoreCasing(PolicyConstants.Conditions.NotIn, out var notInElement))
         {

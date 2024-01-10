@@ -35,6 +35,7 @@ public static class PolicyConstants
     {
         public new const string Equals = "equals";
         public const string NotEquals = "notEquals";
+        public const string Contains = "contains";
         public const string In = "in";
         public const string NotIn = "notIn";
         public const string Greater = "greater";
