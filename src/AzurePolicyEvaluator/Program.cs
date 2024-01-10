@@ -15,11 +15,14 @@ policyOption.AddAlias("-p");
 var testOption = new Option<FileInfo?>("--test") { Description = "Test file to use in evaluation" };
 testOption.AddAlias("-t");
 
-var watchOption = new Option<bool>("--watch") { Description = "Watch folder for policy changes" };
+var watchOption = new Option<bool>("--watch") { Description = "Watch for policy changes" };
 watchOption.AddAlias("-w");
 
-var watchFolderOption = new Option<string>("--watch-folder") { Description = "Override watch folder path" };
+var watchFolderOption = new Option<string>("--watch-folder") { Description = "Watch folder path" };
 watchFolderOption.AddAlias("-f");
+
+var runTestsOption = new Option<string>("--run-tests") { Description = "Run all tests from path" };
+runTestsOption.AddAlias("-r");
 
 var loggingOption = new Option<string>(
     "--logging",
@@ -50,10 +53,11 @@ https://github.com/JanneMattila/azure-policy-evaluator")
     testOption,
     watchOption,
     watchFolderOption,
+    runTestsOption,
     loggingOption
 };
 
-rootCommand.SetHandler(async (policyFile, testFile, watch, folder, logging) =>
+rootCommand.SetHandler(async (policyFile, testFile, watch, folder, runTestsFolder, logging) =>
 {
     var loggingLevel = logging switch
     {
@@ -114,12 +118,28 @@ rootCommand.SetHandler(async (policyFile, testFile, watch, folder, logging) =>
         var evaluationResult = evaluator.Evaluate(policy, test);
         CreateEvaluationReport(policyFile.FullName, testFile.FullName, evaluationResult);
     }
+    else if (!string.IsNullOrEmpty(runTestsFolder))
+    {
+        var path = Path.GetFullPath(runTestsFolder);
+        if (!Directory.Exists(runTestsFolder))
+        {
+            logger.LogError("Folder '{Path}' does not exist.", path);
+            return;
+        }
+        rootFolder = path;
+
+        var policyFiles = Directory.GetFiles(rootFolder, $"{POLICY_FILE_NAME}.{EXTENSION}", SearchOption.AllDirectories);
+        foreach (var file in policyFiles)
+        {
+            ProcessChangedFile(file);
+        }
+    }
     else
     {
         Console.WriteLine("Required arguments missing.");
         Console.WriteLine("Try '--help' for more information.");
     }
-}, policyOption, testOption, watchOption, watchFolderOption, loggingOption);
+}, policyOption, testOption, watchOption, watchFolderOption, runTestsOption, loggingOption);
 
 await rootCommand.InvokeAsync(args);
 
@@ -158,11 +178,17 @@ void PolicyFilesChanged(object sender, FileSystemEventArgs e)
 
     logger.LogInformation($"Policy files changed");
 
+    ProcessChangedFile(e.FullPath);
+}
+
+void ProcessChangedFile(string fullPath)
+{
     try
     {
-        var policyFilename = e.FullPath;
+        var name = Path.GetFileNameWithoutExtension(fullPath);
+        var policyFilename = fullPath;
         List<string> testFiles = [];
-        if (Path.GetFileNameWithoutExtension(e.Name) == POLICY_FILE_NAME)
+        if (Path.GetFileNameWithoutExtension(name) == POLICY_FILE_NAME)
         {
             // Azure Policy file has been changed. Look for test files in sub-folders.
             var policyFolder = Directory.GetParent(policyFilename);
