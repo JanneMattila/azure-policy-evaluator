@@ -2,8 +2,9 @@
 
 [![ci](https://github.com/JanneMattila/azure-policy-evaluator/actions/workflows/ci.yml/badge.svg)](https://github.com/JanneMattila/azure-policy-evaluator/actions/workflows/ci.yml)
 
-This is personal and very **experimental** project
-so don't expect anything from it.
+> [!CAUTION]
+> This is personal and very **experimental** project
+> so don't expect anything from it.
 
 ## Background
 
@@ -279,11 +280,16 @@ To evaluate single policy against single test file:
 ape -p azurepolicy.json -t nsg.json
 ```
 
-To run all tests from a folder:
+To run all tests from a folder and its sub-folders:
 
 ```powershell
 ape -r samples
 ```
+
+> [!NOTE]  
+> Wouldn't it be cool to be able to clone e.g., 
+> [Community Policy Repo](https://github.com/Azure/Community-Policy/)
+> and then run all tests from there?
 
 To allow using `ape` from any folder, you can add it to
 any folder which is in your `PATH` environment variable.
