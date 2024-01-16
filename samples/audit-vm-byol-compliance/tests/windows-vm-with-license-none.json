@@ -1,0 +1,20 @@
+{
+    "name": "vm-app",
+    "type": "Microsoft.Compute/virtualMachines",
+    "location": "northeurope",
+    "properties": {
+        "licenseType": "Windows_Server",
+        "hardwareProfile": {
+            "vmSize": "Standard_B2s"
+        },
+        "storageProfile": {
+            "imageReference": {
+                "publisher": "MicrosoftWindowsServer",
+                "offer": "WindowsServer",
+                "sku": "2022-datacenter-azure-edition-hotpatch",
+                "version": "latest",
+                "exactVersion": "20348.1850.230906"
+            }
+        }
+    }
+}

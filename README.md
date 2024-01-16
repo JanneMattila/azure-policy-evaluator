@@ -80,7 +80,8 @@ to ease your development.
 The idea is to create a tool that can evaluate Azure Policy definitions 
 against a given Azure Resource Manager JSON objects. 
 
-Example ARM Resource for Network Security Group (NSG):
+<details>
+<summary>Example ARM Resource for Network Security Group (NSG)</summary>
 
 ```json
 {
@@ -110,9 +111,11 @@ Example ARM Resource for Network Security Group (NSG):
   }
 }
 ```
+</details>
 
-Example policy to prevent inbound traffic on defined ports
-([deny-ports-nsg](https://github.com/Azure/Community-Policy/tree/main/policyDefinitions/Network/deny-ports-nsg) from Community Policy Repo):
+<details>
+<summary>Example policy to prevent inbound traffic on defined ports
+([deny-ports-nsg](https://github.com/Azure/Community-Policy/tree/main/policyDefinitions/Network/deny-ports-nsg) from Community Policy Repo)</summary>
 
 ```json
 {
@@ -190,6 +193,7 @@ Example policy to prevent inbound traffic on defined ports
   }
 }
 ```
+</details>
 
 Now we can run our tool to evaluate the policy against the resource:
 
