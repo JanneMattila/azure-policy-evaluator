@@ -539,7 +539,7 @@ public class Evaluator
             ArgumentNullException.ThrowIfNull(list, nameof(list));
             result.Condition = !list.Contains(propertyValue);
 
-            _logger.LogDebug("Property {PropertyName} \"notIn\" {NotInValue} is {Condition}", propertyName, notInValue, result.Condition);
+            _logger.LogDebug("Property '{PropertyName}' \"notIn\" '{NotInValue}' is '{Condition}'", propertyName, notInValue, result.Condition);
         }
         else if (policy.TryGetPropertyIgnoreCasing(PolicyConstants.Conditions.Exists, out var existsElement))
         {
@@ -551,13 +551,67 @@ public class Evaluator
             var isValueEmpty = string.IsNullOrEmpty(propertyValue);
             result.Condition = exists ? !isValueEmpty : isValueEmpty;
 
-            _logger.LogDebug("Property {PropertyName} \"exists\" {ExistsValue} is {Condition}", propertyName, existsValue, result.Condition);
+            _logger.LogDebug("Property '{PropertyName}' \"exists\" '{ExistsValue}' is '{Condition}'", propertyName, existsValue, result.Condition);
+        }
+        else if (policy.TryGetPropertyIgnoreCasing(PolicyConstants.Conditions.Like, out var likeElement))
+        {
+            var likeValue = likeElement.GetString();
+            ArgumentNullException.ThrowIfNull(likeValue);
+
+            var value = RunTemplateFunctions(likeValue)?.ToString();
+            ArgumentNullException.ThrowIfNull(value);
+
+            result.Condition = LikeComparison(value, propertyValue);
+
+            _logger.LogDebug("Property '{PropertyName}' \"like\" '{LikeValue}' is '{Condition}'", propertyName, value, result.Condition);
+        }
+        else if (policy.TryGetPropertyIgnoreCasing(PolicyConstants.Conditions.NotLike, out var notLikeElement))
+        {
+            var notLikeValue = notLikeElement.GetString();
+            ArgumentNullException.ThrowIfNull(notLikeValue);
+
+            var value = RunTemplateFunctions(notLikeValue)?.ToString();
+            ArgumentNullException.ThrowIfNull(value);
+
+            result.Condition = ! LikeComparison(value, propertyValue);
+
+            _logger.LogDebug("Property '{PropertyName}' \"notLike\" '{NotLikeValue}' is '{Condition}'", propertyName, value, result.Condition);
         }
         else
         {
             throw new NotImplementedException($"All comparison operations are not yet implemented. See processed segment for missing implementation {policy}");
         }
         return result;
+    }
+
+    internal bool LikeComparison(string likeValue, string propertyValue)
+    {
+        const char star = '*';
+        var count = likeValue.Count(o => o == star);
+        if (count > 1)
+        {
+            throw new NotImplementedException($"Only one '*' is supported in like expressions. Expression: {likeValue}");
+        }
+
+        if (likeValue.StartsWith(star))
+        {
+            // Ends with
+            var value = likeValue.Substring(1);
+            return propertyValue.EndsWith(value);
+        }
+        else if (likeValue.EndsWith(star))
+        {
+            // Starts with
+            var value = likeValue.Substring(0, likeValue.Length - 1);
+            return propertyValue.StartsWith(value);
+        }
+        else if (likeValue == propertyValue)
+        {
+            // Equals
+            return true;
+        }
+
+        return false;
     }
 
     internal object RunTemplateFunctions(string text)
