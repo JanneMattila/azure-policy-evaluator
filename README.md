@@ -81,7 +81,7 @@ The idea is to create a tool that can evaluate Azure Policy definitions
 against a given Azure Resource Manager JSON objects. 
 
 <details>
-<summary>Example ARM Resource for Network Security Group (NSG)</summary>
+<summary>Example ARM Resource `nsg.json` for Network Security Group (NSG) allowing port 22 usage</summary>
 
 ```json
 {
@@ -114,7 +114,7 @@ against a given Azure Resource Manager JSON objects.
 </details>
 
 <details>
-<summary>Example policy to prevent inbound traffic on defined ports
+<summary>Example policy `azurepolicy.json` to prevent inbound traffic on defined ports
 ([deny-ports-nsg](https://github.com/Azure/Community-Policy/tree/main/policyDefinitions/Network/deny-ports-nsg) from Community Policy Repo)</summary>
 
 ```json
@@ -218,12 +218,12 @@ As this is just an **experiment**, there are many limitations (list is not even 
 - Most of the [data types](https://learn.microsoft.com/en-us/azure/azure-resource-manager/templates/data-types) are not implemented
   - `string`, `int` and `bool` are implemented
 - Most of the [policy conditions](https://learn.microsoft.com/en-us/azure/governance/policy/concepts/definition-structure#conditions) are not implemented
-  - `field`, `count`, `in`, `notIn`, `allOf`, `anyOf`, `not`, `equals`, `notEquals`, `contains`, `greater`, `greaterOrEquals`, `less`, `lessOrEquals` are implemented _at least partially_
+  - `field`, `count`, `in`, `notIn`, `allOf`, `anyOf`, `not`, `equals`, `notEquals`, `contains`, `greater`, `greaterOrEquals`, `less`, `lessOrEquals`, `exists` are implemented _at least partially_
 - [Aliases](https://learn.microsoft.com/en-us/azure/governance/policy/concepts/definition-structure#aliases) are implemented _but_ multiple aliases are not correctly handled
   - `[*]` array alias is implemented
 - `"source": "action"` is not implemented ([info](https://github.com/MicrosoftDocs/azure-docs/issues/5899))
 
-## Usage
+## Try it yourself
 
 Download the tool:
 

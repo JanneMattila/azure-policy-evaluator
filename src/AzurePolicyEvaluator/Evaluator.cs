@@ -541,9 +541,21 @@ public class Evaluator
 
             _logger.LogDebug("Property {PropertyName} \"notIn\" {NotInValue} is {Condition}", propertyName, notInValue, result.Condition);
         }
+        else if (policy.TryGetPropertyIgnoreCasing(PolicyConstants.Conditions.Exists, out var existsElement))
+        {
+            var existsValue = existsElement.GetString();
+            ArgumentNullException.ThrowIfNull(existsValue);
+
+            bool.TryParse(RunTemplateFunctions(existsValue)?.ToString(), out var exists);
+
+            var isValueEmpty = string.IsNullOrEmpty(propertyValue);
+            result.Condition = exists ? !isValueEmpty : isValueEmpty;
+
+            _logger.LogDebug("Property {PropertyName} \"exists\" {ExistsValue} is {Condition}", propertyName, existsValue, result.Condition);
+        }
         else
         {
-            throw new NotImplementedException($"All comparison operations are not yet implemented.");
+            throw new NotImplementedException($"All comparison operations are not yet implemented. See processed segment for missing implementation {policy}");
         }
         return result;
     }
@@ -589,6 +601,8 @@ public class Evaluator
 
     internal List<EvaluationResult> ExecuteArrayEvaluation(string propertyPath, JsonElement arrayElement, JsonElement policy)
     {
+        _logger.LogDebug("Array evaluation for '{PropertyPath}'", propertyPath);
+
         var results = new List<EvaluationResult>();
         var arrayName = propertyPath.Substring(0, propertyPath.IndexOf(PolicyConstants.ArrayMemberReference));
         if (!arrayElement.TryGetPropertyIgnoreCasing(arrayName, out var arrayPropertyElement))

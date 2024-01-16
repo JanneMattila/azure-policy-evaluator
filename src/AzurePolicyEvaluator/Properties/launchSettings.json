@@ -3,7 +3,7 @@
     "AzurePolicyEvaluator": {
       "commandName": "Project",
       //"commandLineArgs": "-p ..\\..\\..\\..\\..\\..\\samples\\deny-ports-nsg\\azurepolicy.json -t ..\\..\\..\\..\\..\\..\\samples\\deny-ports-nsg\\tests\\nsg-allow-ssh-and-rdp-deny.json",
-      "commandLineArgs": "-w -f ..\\..\\..\\..\\..\\..\\samples\\deny-ports-nsg"
+      "commandLineArgs": "-w -f \"..\\..\\..\\..\\..\\..\\samples\\Key Vault\""
     }
   }
 }

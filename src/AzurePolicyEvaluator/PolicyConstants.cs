@@ -38,6 +38,9 @@ public static class PolicyConstants
         public const string Contains = "contains";
         public const string In = "in";
         public const string NotIn = "notIn";
+        public const string Exists = "exists";
+        public const string Like = "like";
+        public const string NotLike = "notLike";
         public const string Greater = "greater";
         public const string GreaterOrEquals = "greaterOrEquals";
         public const string Less = "less";

@@ -1,0 +1,16 @@
+{
+    "type": "Microsoft.KeyVault/vaults",
+    "properties": {
+        "networkAcls": {
+            "bypass": "AzureServices",
+            "defaultAction": "Deny",
+            "ipRules": [],
+            "virtualNetworkRules": [
+                {
+                    "id": "/subscriptions/.../resourcegroups/rg-kv/providers/microsoft.network/virtualnetworks/vnet/subnets/snet-kv"
+                }
+            ]
+        },
+        "publicNetworkAccess": "Enabled"
+    }
+}

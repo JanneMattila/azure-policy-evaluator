@@ -1,0 +1,16 @@
+{
+    "type": "Microsoft.KeyVault/vaults",
+    "properties": {
+        "networkAcls": {
+            "bypass": "AzureServices",
+            "defaultAction": "Deny",
+            "ipRules": [
+                {
+                    "value": "20.234.151.123/32"
+                }
+            ],
+            "virtualNetworkRules": []
+        },
+        "publicNetworkAccess": "Enabled"
+    }
+}

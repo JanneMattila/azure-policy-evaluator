@@ -22,4 +22,25 @@ public class FieldComparisonTests
         // Assert
         Assert.True(evaluationResult.Condition);
     }
+
+    [Theory]
+    [InlineData("true", "a", true)]
+    [InlineData("true", "", false)]
+    [InlineData("false", "a", false)]
+    [InlineData("false", "", true)]
+    public void ExistsValidationTest(string existsElement, string propertyValue, bool expected)
+    {
+        // Arrange
+        var policy = JsonDocument.Parse(@"{
+            ""field"": ""value"",
+            ""exists"": """ + existsElement + "\"}");
+
+        var evaluator = new Evaluator(NullLogger<Evaluator>.Instance, new(NullLogger<AliasRepository>.Instance));
+
+        // Act
+        var evaluationResult = evaluator.FieldComparison(policy.RootElement, "value", propertyValue);
+
+        // Assert
+        Assert.Equal(expected, evaluationResult.Condition);
+    }
 }
