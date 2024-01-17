@@ -4,5 +4,11 @@
 			"path": "."
 		}
 	],
-	"settings": {}
+	"settings": {},
+	"extensions": {
+		"recommendations": [
+			"github.vscode-github-actions",
+			"azurepolicy.azurepolicyextension"
+		]
+	}
 }

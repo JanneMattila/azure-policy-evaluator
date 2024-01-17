@@ -3,53 +3,67 @@ name: ci
 on:
   workflow_dispatch:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
     paths:
-      - 'src/**'
+      - "src/**"
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
-
   build:
-
     strategy:
       matrix:
-        os: [windows-latest, ubuntu-latest]
+        runtime:
+          - os: windows-latest
+            rid: win-x64
+          - os: ubuntu-latest
+            rid: linux-x64
+          - os: macos-latest
+            rid: osx-x64
 
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{ matrix.runtime.os }}
 
     steps:
-    - uses: actions/checkout@v3
-    
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v3
-      with:
-        dotnet-version: 8.0.x
+      - uses: actions/checkout@v3
 
-    - name: Restore dependencies
-      run: dotnet restore
-      
-    - name: Build
-      run: dotnet build --no-restore
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: 8.0.x
 
-    - name: Test
-      run: dotnet test --no-build --verbosity normal
+      - name: Restore dependencies
+        run: dotnet restore
 
-    - name: Publish ${{ matrix.runtime }}
-      working-directory: src/AzurePolicyEvaluator
-      run: dotnet publish --output output
+      - name: Build
+        run: dotnet build --no-restore
 
-    - name: Upload Linux artifacts
-      uses: actions/upload-artifact@v3
-      if: matrix.os == 'ubuntu-latest'
-      with:
-        name: ape-linux
-        path: src/AzurePolicyEvaluator/output/ape
+      - name: Test
+        run: dotnet test --no-build --verbosity normal
 
-    - name: Upload Windows artifacts
-      uses: actions/upload-artifact@v3
-      if: matrix.os == 'windows-latest'
-      with:
-        name: ape-windows
-        path: src/AzurePolicyEvaluator/output/ape.exe
+      - name: Publish ${{ matrix.runtime.os }}
+        working-directory: src/AzurePolicyEvaluator
+        run: dotnet publish --runtime ${{ matrix.runtime.rid }} --output output
+
+      - name: Release tests
+        run: src/AzurePolicyEvaluator/output/ape -r samples
+
+      - name: Upload Linux artifacts
+        uses: actions/upload-artifact@v3
+        if: matrix.runtime.os == 'ubuntu-latest'
+        with:
+          name: ape-linux
+          path: src/AzurePolicyEvaluator/output/ape
+
+      - name: Upload macOS artifacts
+        uses: actions/upload-artifact@v3
+        if: matrix.runtime.os == 'macos-latest'
+        with:
+          name: ape-macos
+          path: src/AzurePolicyEvaluator/output/ape
+
+      - name: Upload Windows artifacts
+        uses: actions/upload-artifact@v3
+        if: matrix.runtime.os == 'windows-latest'
+        with:
+          name: ape-windows
+          path: src/AzurePolicyEvaluator/output/ape.exe

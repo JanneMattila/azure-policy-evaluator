@@ -234,6 +234,7 @@ Download the tool:
 3. Download artifact based on your platform
    - `ape-windows` for Windows
    - `ape-linux` for Linux
+   - `ape-macos` for macOS
 4. Extract the artifact
 5. Add the executable to location which is in your `PATH` environment variable
 
@@ -246,10 +247,12 @@ Description:
   Azure Policy Evaluator allows you to evaluate Azure Policy files against test files.
   You can use this to test your policies before deploying them to Azure.
 
-  The tool can be used in two ways:
+  The tool can be used in 3 different ways:
 
   1. Evaluate a single policy file against a single test file.
-  2. Watch for policy changes in the folders and evaluate them against all test files in the sub-folders.
+  2. Watch for policy changes in the folders and evaluate them against all test files in the
+  sub-folders.
+  3. Run all tests from a folder.
 
   More information can be found here:
   https://github.com/JanneMattila/azure-policy-evaluator
@@ -301,7 +304,7 @@ To allow using `ape` from any folder, you can add it to
 any folder which is in your `PATH` environment variable.
 
 In case you want to remove `ape` from your system, you can
-just delete the executable. If you have fogotten where you
+just delete the executable. If you have forgotten where you
 installed it, you can use these commands to find the executable:
 
 Command-prompt:
