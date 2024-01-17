@@ -51,14 +51,14 @@ public class AliasRepository
 
         if (_aliasCache.TryGetValue(aliasLower, out string? value))
         {
-            _logger.LogDebug("Alias {Alias} found in cache {Path}", alias, value);
+            _logger.LogDebug("Alias '{Alias}' found in cache '{Path}'", alias, value);
 
             path = value;
             return true;
         }
         else
         {
-            _logger.LogDebug("Alias {Alias} not found in cache", alias);
+            _logger.LogDebug("Alias '{Alias}' not found in cache", alias);
         }
 
         return false;

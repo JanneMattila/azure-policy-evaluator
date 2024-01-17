@@ -81,7 +81,7 @@ The idea is to create a tool that can evaluate Azure Policy definitions
 against a given Azure Resource Manager JSON objects. 
 
 <details>
-<summary>Example ARM Resource `nsg.json` for Network Security Group (NSG) allowing port 22 usage</summary>
+<summary>Example ARM Resource "nsg.json" for Network Security Group (NSG) allowing port 22 usage</summary>
 
 ```json
 {
@@ -114,7 +114,7 @@ against a given Azure Resource Manager JSON objects.
 </details>
 
 <details>
-<summary>Example policy `azurepolicy.json` to prevent inbound traffic on defined ports
+<summary>Example policy "azurepolicy.json" to prevent inbound traffic on defined ports
 ([deny-ports-nsg](https://github.com/Azure/Community-Policy/tree/main/policyDefinitions/Network/deny-ports-nsg) from Community Policy Repo)</summary>
 
 ```json
@@ -247,11 +247,10 @@ Description:
   Azure Policy Evaluator allows you to evaluate Azure Policy files against test files.
   You can use this to test your policies before deploying them to Azure.
 
-  The tool can be used in 3 different ways:
+  Tool can be used in 3 different ways:
 
   1. Evaluate a single policy file against a single test file.
-  2. Watch for policy changes in the folders and evaluate them against all test files in the
-  sub-folders.
+  2. Watch for policy changes in the folders and evaluate them against all test files in the sub-folders.
   3. Run all tests from a folder.
 
   More information can be found here:

@@ -24,13 +24,13 @@ public class Evaluator
         if (string.IsNullOrWhiteSpace(policy))
         {
             result.Result = EvaluationResultTexts.EmptyPolicyFile;
-            _logger.LogError(result.Result);
+            _logger.LogCritical(result.Result);
             return result;
         }
         if (string.IsNullOrWhiteSpace(test))
         {
             result.Result = EvaluationResultTexts.EmptyTestFile;
-            _logger.LogError(result.Result);
+            _logger.LogCritical(result.Result);
             return result;
         }
 
@@ -46,7 +46,7 @@ public class Evaluator
             result.Result = EvaluationResultTexts.PolicyFileIsNotValidJson;
             result.Details = ex.Message;
 
-            _logger.LogError(ex, result.Result);
+            _logger.LogCritical(ex, result.Result);
 
             return result;
         }
@@ -60,7 +60,7 @@ public class Evaluator
             result.Result = EvaluationResultTexts.TestFileIsNotValidJson;
             result.Details = ex.Message;
 
-            _logger.LogError(ex, result.Result);
+            _logger.LogCritical(ex, result.Result);
 
             return result;
         }
@@ -68,35 +68,35 @@ public class Evaluator
         if (!policyDocument.RootElement.TryGetPropertyIgnoreCasing(PolicyConstants.Properties.Name, out var policyProperties))
         {
             result.Result = EvaluationResultTexts.PolicyDoesNotContainProperties;
-            _logger.LogError(result.Result);
+            _logger.LogCritical(result.Result);
             return result;
         }
 
         if (!policyProperties.TryGetPropertyIgnoreCasing(PolicyConstants.Properties.PolicyRule, out var policyRule))
         {
             result.Result = EvaluationResultTexts.PolicyDoesNotContainPolicyRule;
-            _logger.LogError(result.Result);
+            _logger.LogCritical(result.Result);
             return result;
         }
 
         if (!policyRule.TryGetPropertyIgnoreCasing(PolicyConstants.Properties.If, out var policyRoot))
         {
             result.Result = EvaluationResultTexts.PolicyRuleDoesNotContainIf;
-            _logger.LogError(result.Result);
+            _logger.LogCritical(result.Result);
             return result;
         }
 
         if (!policyRule.TryGetPropertyIgnoreCasing(PolicyConstants.Then, out var thenElement))
         {
             result.Result = EvaluationResultTexts.PolicyRuleDoesNotContainThen;
-            _logger.LogError(result.Result);
+            _logger.LogCritical(result.Result);
             return result;
         }
 
         if (!thenElement.TryGetPropertyIgnoreCasing(PolicyConstants.Effect, out var effectElement))
         {
             result.Result = EvaluationResultTexts.PolicyRuleDoesNotContainEffect;
-            _logger.LogError(result.Result);
+            _logger.LogCritical(result.Result);
             return result;
         }
 
@@ -125,7 +125,7 @@ public class Evaluator
         {
             result.Effect = PolicyConstants.Effects.None;
         }
-        _logger.LogDebug("Policy evaluation finished with {Condition} causing effect {Effect}", result.Condition, result.Effect);
+        _logger.LogDebug("Policy evaluation finished with '{Condition}' causing effect '{Effect}'", result.Condition, result.Effect);
         return result;
     }
 
@@ -189,10 +189,10 @@ public class Evaluator
                         }
                         break;
                     default:
-                        throw new NotImplementedException($"Parameter type {type} is not implemented.");
+                        throw new NotImplementedException($"Parameter type '{type}' is not implemented.");
                 }
 
-                _logger.LogDebug("Parsed default value {Value}", parameterObject.DefaultValue);
+                _logger.LogDebug("Parsed default value '{Value}'", parameterObject.DefaultValue);
 
                 parametersList.Add(parameterObject);
             }

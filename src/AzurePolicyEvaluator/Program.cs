@@ -1,5 +1,6 @@
 ﻿using AzurePolicyEvaluator;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
 using System.CommandLine;
@@ -41,7 +42,7 @@ var rootFolder = Directory.GetCurrentDirectory();
 var rootCommand = new RootCommand(@"Azure Policy Evaluator allows you to evaluate Azure Policy files against test files.
 You can use this to test your policies before deploying them to Azure.
 
-The tool can be used in 3 different ways:
+Tool can be used in 3 different ways:
 
 1. Evaluate a single policy file against a single test file.
 2. Watch for policy changes in the folders and evaluate them against all test files in the sub-folders.
@@ -71,17 +72,12 @@ rootCommand.SetHandler(async (policyFile, testFile, watch, folder, runTestsFolde
     var services = new ServiceCollection();
     services.AddLogging(builder => {
         builder.SetMinimumLevel(loggingLevel);
+        builder.Services.TryAddEnumerable(ServiceDescriptor.Singleton<ConsoleFormatter, CustomConsoleFormatter>());
         builder.AddConsole(options =>
-        {
-            options.MaxQueueLength = 1;
-        });
-        builder.AddSimpleConsole(options =>
-        {
-            options.ColorBehavior = LoggerColorBehavior.Enabled;
-            options.IncludeScopes = true;
-            options.SingleLine = true;
-            options.TimestampFormat = "HH:mm:ss ";
-        });
+            {
+                options.MaxQueueLength = 1;
+                options.FormatterName = "custom";
+            });
     });
     services.AddSingleton<AliasRepository>();
     services.AddSingleton<Evaluator>();
@@ -270,7 +266,7 @@ bool? ProcessChangedFile(string fullPath)
     }
     catch (Exception ex)
     {
-        logger.LogError(ex, "Error while evaluating policy files.");
+        logger.LogCritical(ex, "Error while evaluating policy files.");
     }
     return resultOk;
 }
