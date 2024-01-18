@@ -211,7 +211,6 @@ public class Evaluator
 
         if (policy.ValueKind == JsonValueKind.Object)
         {
-            // TODO: Fix case sensitivity
             if (policy.TryGetPropertyIgnoreCasing(PolicyConstants.LogicalOperators.Not, out var notObject))
             {
                 _logger.LogDebug("'not' started");
@@ -453,10 +452,11 @@ public class Evaluator
         return result;
     }
 
+    // https://learn.microsoft.com/en-us/azure/governance/policy/concepts/definition-structure#conditions
     internal EvaluationResult FieldComparison(JsonElement policy, string propertyName, string propertyValue)
     {
         EvaluationResult result = new();
-        _logger.LogDebug("Field comparison for '{PropertyName}' with value '{EqualsValue}'", propertyName, propertyValue);
+        _logger.LogDebug("Field comparison for '{PropertyName}' with value '{PropertyValue}'", propertyName, propertyValue);
 
         if (policy.TryGetPropertyIgnoreCasing(PolicyConstants.Conditions.Equals, out var equalsElement))
         {
@@ -466,7 +466,7 @@ public class Evaluator
             var value = RunTemplateFunctions(equalsValue)?.ToString();
             result.Condition = propertyValue == value;
 
-            _logger.LogDebug("Property '{PropertyName}' with value '{PropertyValue}' \"equals\" '{NotEqualsValue}' is '{Condition}'", propertyName, propertyValue, equalsValue, result.Condition);
+            _logger.LogDebug("Property '{PropertyName}' with value '{PropertyValue}' \"equals\" '{EqualsValue}' is '{Condition}'", propertyName, propertyValue, equalsValue, result.Condition);
         }
         else if (policy.TryGetPropertyIgnoreCasing(PolicyConstants.Conditions.NotEquals, out var notEqualsElement))
         {

@@ -114,8 +114,9 @@ against a given Azure Resource Manager JSON objects.
 </details>
 
 <details>
-<summary>Example policy "azurepolicy.json" to prevent inbound traffic on defined ports
-([deny-ports-nsg](https://github.com/Azure/Community-Policy/tree/main/policyDefinitions/Network/deny-ports-nsg) from Community Policy Repo)</summary>
+<summary>Example policy "azurepolicy.json" to prevent inbound traffic on defined ports</summary>
+
+Policy example has been taken from [deny-ports-nsg](https://github.com/Azure/Community-Policy/tree/main/policyDefinitions/Network/deny-ports-nsg) from Community Policy Repo.
 
 ```json
 {
