@@ -201,7 +201,7 @@ Now we can run our tool to evaluate the policy against the resource:
 ```console
 $ ape -p azurepolicy.json -t nsg.json
 
-10:10:00 info: Program[0] Policy 'azurepolicy' with test 'securityrule-allows-ssh-deny' evaluated to 'Deny' which was expected -> PASS
+Policy 'azurepolicy' with test 'securityrule-allows-ssh-deny' evaluated to 'Deny' which was expected -> PASS
 ```
 
 See demo in action:
@@ -318,6 +318,82 @@ PowerShell:
 ```powershell
 gcm ape | fl
 ```
+
+## How `watch` mode works
+
+Azure Policy Evaluator finds all `*.json` files from the current folder and its sub-folders.
+If the file name is `azurepolicy.json`, then it's considered as a policy file.
+Matching test files are files which have `*.json` extension and they are in the same folder or in the sub-folders.
+
+Here is directory structure from this repository `samples` folder:
+
+```console
+├───Compute
+│   └───audit-vm-byol-compliance
+│       │   azurepolicy.json
+│       │
+│       └───tests
+│               linux-vm-none.json
+│               windows-vm-audit.json
+│               windows-vm-with-license-none.json
+│
+├───Key Vault
+│   └───audit-if-key-vault-has-no-virtual-network-rules
+│       │   azurepolicy.json
+│       │
+│       └───tests
+│               kv-iprules-with-allow-none.json
+│               kv-iprules-with-deny-none.json
+│               kv-no-rules-allow-audit.json
+│               kv-virtualnetworkrules-with-allow-audit.json
+│               kv-virtualnetworkrules-with-deny-none.json
+│
+└───Network
+    ├───deny-ports-nsg
+    │   │   azurepolicy.json
+    │   │
+    │   └───tests
+    │           nsg-allow-ssh-and-rdp-deny.json
+    │           securityrule-allows-ssh-deny.json
+    │
+    └───enforce-load-balancer-standard-sku
+        │   azurepolicy.json
+        │
+        └───tests
+                basic-loadbalancer-audit.json
+                standard-loadbalancer-none.json
+```
+
+In `tests` folder there are test files which are used to evaluate the policy.
+Test file name is used to describe the test case expected result.
+E.g., `securityrule-allows-ssh-deny.json` means that the test case expects the policy to `deny` the resource.
+
+You can start the `watch` mode from root of this repository:
+
+```powershell
+ape -w -f samples
+```
+
+If you now edit any of the policy files or test files, then the tool will automatically run the evaluation again.
+
+If you edit a test file, then the tool will run only that test case.
+
+If you edit a policy file, then the tool will run all test cases which are related to that policy file.
+
+## How to create test files
+
+Test files are just JSON files which are used to describe the test case.
+Easiest way to create test file is to copy existing resource from Azure Portal and
+then modify it to match your test case.
+You can use `JSON View` in the Azure Portal to copy the JSON.
+Try to use latest available API Version to get all the relevant fields.
+Sometimes it might default to older API Version which does not contain all the fields that you need.
+You can remove any extra fields, identifiers and others which are not needed for the test case.
+
+## Feedback
+
+Use [GitHub Discussions](https://github.com/JanneMattila/azure-policy-evaluator/discussions) to give feedback or provide your comments and ideas.
+It would be great to hear your thoughts about this tool and that do you see value in it.
 
 ## Links
 
