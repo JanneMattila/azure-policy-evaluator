@@ -327,11 +327,10 @@ Matching test files are files which have `*.json` extension and they are in the 
 
 Here is directory structure from this repository `samples` folder:
 
-```console
+```text
 ├───Compute
 │   └───audit-vm-byol-compliance
 │       │   azurepolicy.json
-│       │
 │       └───tests
 │               linux-vm-none.json
 │               windows-vm-audit.json
@@ -340,25 +339,20 @@ Here is directory structure from this repository `samples` folder:
 ├───Key Vault
 │   └───audit-if-key-vault-has-no-virtual-network-rules
 │       │   azurepolicy.json
-│       │
 │       └───tests
 │               kv-iprules-with-allow-none.json
 │               kv-iprules-with-deny-none.json
 │               kv-no-rules-allow-audit.json
 │               kv-virtualnetworkrules-with-allow-audit.json
 │               kv-virtualnetworkrules-with-deny-none.json
-│
 └───Network
     ├───deny-ports-nsg
     │   │   azurepolicy.json
-    │   │
     │   └───tests
     │           nsg-allow-ssh-and-rdp-deny.json
     │           securityrule-allows-ssh-deny.json
-    │
     └───enforce-load-balancer-standard-sku
         │   azurepolicy.json
-        │
         └───tests
                 basic-loadbalancer-audit.json
                 standard-loadbalancer-none.json
