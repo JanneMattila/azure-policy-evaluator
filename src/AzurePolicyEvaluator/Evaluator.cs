@@ -213,24 +213,22 @@ public class Evaluator
         {
             if (policy.TryGetPropertyIgnoreCasing(PolicyConstants.LogicalOperators.Not, out var notObject))
             {
-                _logger.LogDebug("'not' started");
+                _logger.LogDebug("'{LogicalOperator}' started", PolicyConstants.LogicalOperators.Not);
 
                 result = ExecuteEvaluation(level + 1, notObject, test);
                 result.Condition = !result.Condition;
 
-                _logger.LogDebug($"'not' return condition {result.Condition}");
+                _logger.LogDebug("'{LogicalOperator}' return condition 'Condition'", PolicyConstants.LogicalOperators.Not, result.Condition);
                 return result;
             }
             else if (policy.TryGetPropertyIgnoreCasing(PolicyConstants.LogicalOperators.AnyOf, out var anyOfObject))
             {
-                _logger.LogDebug("'anyOf' started");
+                _logger.LogDebug("'{LogicalOperator}' started", PolicyConstants.LogicalOperators.AnyOf);
 
                 var anyOfChildren = anyOfObject.EnumerateArray();
                 if (!anyOfChildren.Any())
                 {
-                    var error = $"Logical operator {PolicyConstants.LogicalOperators.AnyOf} must have child elements.";
-                    _logger.LogError(error);
-                    result.Details = error;
+                    _logger.LogError("Logical operator '{LogicalOperator}' must have child elements.", PolicyConstants.LogicalOperators.AnyOf);
                     return result;
                 }
 
@@ -244,19 +242,17 @@ public class Evaluator
                 }
 
                 result.Count = result.Condition ? result.Count : 0;
-                _logger.LogDebug("'anyOf' return condition {Condition}", result.Condition);
+                _logger.LogDebug("'{LogicalOperator}' return condition '{Condition}'", PolicyConstants.LogicalOperators.AnyOf, result.Condition);
                 return result;
             }
             else if (policy.TryGetPropertyIgnoreCasing(PolicyConstants.LogicalOperators.AllOf, out var allOfObject))
             {
-                _logger.LogDebug("'allOf' started");
+                _logger.LogDebug("'{LogicalOperator}' started", PolicyConstants.LogicalOperators.AllOf);
 
                 var allOfChildren = allOfObject.EnumerateArray();
                 if (!allOfChildren.Any())
                 {
-                    var error = $"Logical operator {PolicyConstants.LogicalOperators.AllOf} must have child elements.";
-                    _logger.LogError(error);
-                    result.Details = error;
+                    _logger.LogError("Logical operator '{LogicalOperator}' must have child elements.", PolicyConstants.LogicalOperators.AllOf);
                     return result;
                 }
 
@@ -269,20 +265,18 @@ public class Evaluator
                 result.Condition = results.All(o => o.Condition);
                 result.Count = result.Condition ? results.Count : 0;
 
-                _logger.LogDebug("'allOf' return condition {Condition}", result.Condition);
+                _logger.LogDebug("'{LogicalOperator}' return condition '{Condition}'", PolicyConstants.LogicalOperators.AllOf, result.Condition);
                 return result;
             }
             else if (policy.TryGetPropertyIgnoreCasing(PolicyConstants.Count, out var countObject))
             {
-                _logger.LogDebug("'count' started");
+                _logger.LogDebug("'{LogicalOperator}' started", PolicyConstants.Count);
 
                 // More information:
                 // https://learn.microsoft.com/en-us/azure/governance/policy/concepts/definition-structure#field-count
                 if (!countObject.TryGetPropertyIgnoreCasing(PolicyConstants.Field, out var fieldObject))
                 {
-                    var error = $"Count expression must have 'field' child element.";
-                    _logger.LogError(error);
-                    result.Details = error;
+                    _logger.LogError("'{LogicalOperator}' expression must have '{Element}' child element.", PolicyConstants.Count, PolicyConstants.Field);
                     return result;
                 }
 
@@ -299,17 +293,17 @@ public class Evaluator
 
                 result = ExecuteCountEvaluation(policy, result);
 
-                _logger.LogDebug("'count' return condition {Condition} with {Count}", result.Condition, result.Count);
+                _logger.LogDebug("'{LogicalOperator}' return condition '{Condition}' with '{Count}'", PolicyConstants.Count, result.Condition, result.Count);
                 return result;
             }
             else if (policy.TryGetPropertyIgnoreCasing(PolicyConstants.Field, out var fieldObject))
             {
-                _logger.LogDebug("'field' started");
+                _logger.LogDebug("'{LogicalOperator}' started", PolicyConstants.Field);
 
                 var propertyPath = fieldObject.GetString();
                 result = ExecutePropertyEvaluation(propertyPath, policy, test);
 
-                _logger.LogDebug("'field' return condition {Condition}", result.Condition);
+                _logger.LogDebug("'{LogicalOperator}' return condition '{Condition}'", PolicyConstants.Field, result.Condition);
                 return result;
             }
             else
@@ -330,59 +324,49 @@ public class Evaluator
         {
             if (greaterElement.ValueKind != JsonValueKind.Number)
             {
-                var error = $"Count expression 'greater' must be number value.";
-                _logger.LogError(error);
-                result.Details = error;
+                _logger.LogError("Count expression '{Operator}' must be number value.", PolicyConstants.Conditions.Greater);
                 return result;
             }
             var greaterValue = greaterElement.GetInt32();
             result.Condition = childResult.Count > greaterValue;
-            _logger.LogDebug("Child count {Count} \"greater\" {Value} is {Condition}", childResult.Count, greaterValue, result.Condition);
+            _logger.LogDebug("Child count '{Count}' \"{Operator}\" '{Value}' is '{Condition}'", childResult.Count, PolicyConstants.Conditions.Greater, greaterValue, result.Condition);
         }
         else if (countObject.TryGetPropertyIgnoreCasing(PolicyConstants.Conditions.GreaterOrEquals, out var greaterOrEqualsElement))
         {
             if (greaterOrEqualsElement.ValueKind != JsonValueKind.Number)
             {
-                var error = $"Count expression 'greaterOrEquals' must be number value.";
-                _logger.LogError(error);
-                result.Details = error;
+                _logger.LogError("Count expression '{Operator}' must be number value.", PolicyConstants.Conditions.GreaterOrEquals);
                 return result;
             }
             var greaterOrEqualsValue = greaterOrEqualsElement.GetInt32();
             result.Condition = childResult.Count >= greaterOrEqualsValue;
-            _logger.LogDebug("Child count {Count} \"greaterOrEquals\" {Value} is {Condition}", childResult.Count, greaterOrEqualsValue, result.Condition);
+            _logger.LogDebug("Child count '{Count}' \"{Operator}\" '{Value}' is '{Condition}'", childResult.Count, PolicyConstants.Conditions.GreaterOrEquals, greaterOrEqualsValue, result.Condition);
         }
         else if (countObject.TryGetPropertyIgnoreCasing(PolicyConstants.Conditions.Less, out var lessElement))
         {
             if (lessElement.ValueKind != JsonValueKind.Number)
             {
-                var error = $"Count expression 'less' must be number value.";
-                _logger.LogError(error);
-                result.Details = error;
+                _logger.LogError("Count expression '{Operator}' must be number value.", PolicyConstants.Conditions.Less);
                 return result;
             }
             var lessValue = lessElement.GetInt32();
             result.Condition = childResult.Count < lessValue;
-            _logger.LogDebug("Child count {Count} \"less\" {Value} is {Condition}", childResult.Count, lessValue, result.Condition);
+            _logger.LogDebug("Child count '{Count}' \"{Operator}\" '{Value}' is '{Condition}'", childResult.Count, PolicyConstants.Conditions.Less, lessValue, result.Condition);
         }
         else if (countObject.TryGetPropertyIgnoreCasing(PolicyConstants.Conditions.LessOrEquals, out var lessOrEqualsElement))
         {
             if (lessOrEqualsElement.ValueKind != JsonValueKind.Number)
             {
-                var error = $"Count expression 'lessOrEquals' must be number value.";
-                _logger.LogError(error);
-                result.Details = error;
+                _logger.LogError("Count expression '{Operator}' must be number value.", PolicyConstants.Conditions.LessOrEquals);
                 return result;
             }
             var lessOrEqualsValue = lessOrEqualsElement.GetInt32();
             result.Condition = childResult.Count <= lessOrEqualsValue;
-            _logger.LogDebug("Child count {Count} \"lessOrEquals\" {Value} is {Condition}", childResult.Count, lessOrEqualsValue, result.Condition);
+            _logger.LogDebug("Child count '{Count}' \"{Operator}\" '{Value}' is '{Condition}'", childResult.Count, PolicyConstants.Conditions.LessOrEquals, lessOrEqualsValue, result.Condition);
         }
         else
         {
-            var error = $"Unknown count condition operator.";
-            _logger.LogError(error);
-            result.Details = error;
+            _logger.LogError("Unknown '{Operator}' condition operator.", PolicyConstants.Count);
         }
         return result;
     }

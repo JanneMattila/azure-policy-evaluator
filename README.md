@@ -283,6 +283,59 @@ To see `debug` level logging:
 ape -w --logging debug
 ```
 
+This enables you to see the policy evaluation steps in detail:
+  
+```console
+$ ape -p azurepolicy.json -t tests\kv-iprules-with-allow-none.json --logging debug
+
+Started policy evaluation
+ParseParameters => Started parsing of parameters
+ParseParameters => Parsing parameter 'effect' of type 'string'
+ParseParameters => Parsed default value 'Audit'
+ParseParameters => Parsed 1 parameters
+1 => Started evaluation
+1 => 'allOf' started
+1 => 2 => Started evaluation
+1 => 2 => 'field' started
+1 => 2 => Started alias cache population
+1 => 2 => Finished alias cache population in 206 ms and 65383 items
+1 => 2 => Alias 'type' not found in cache
+1 => 2 => Field comparison for 'type' with value 'Microsoft.KeyVault/vaults'
+1 => 2 => Property 'type' with value 'Microsoft.KeyVault/vaults' "equals" 'Microsoft.KeyVault/vaults' is 'True'
+1 => 2 => 'field' return condition 'True'
+1 => 2 => Started evaluation
+1 => 2 => 'anyOf' started
+1 => 2 => 3 => Started evaluation
+1 => 2 => 3 => 'field' started
+1 => 2 => 3 => Alias 'Microsoft.KeyVault/vaults/networkAcls.virtualNetworkRules[*].id' found in cache 'properties.networkAcls.virtualNetworkRules[*].id'        
+1 => 2 => 3 => Property path 'Microsoft.KeyVault/vaults/networkAcls.virtualNetworkRules[*].id' is alias to 'properties.networkAcls.virtualNetworkRules[*].id'   
+1 => 2 => 3 => Property 'properties.networkAcls.virtualNetworkRules[*].id' found
+1 => 2 => 3 => Property 'networkAcls.virtualNetworkRules[*].id' found
+1 => 2 => 3 => Array evaluation for 'virtualNetworkRules[*].id'
+1 => 2 => 3 => 'field' return condition 'False'
+1 => 2 => 3 => Started evaluation
+1 => 2 => 3 => 'field' started
+1 => 2 => 3 => Alias 'Microsoft.KeyVault/vaults/networkAcls.virtualNetworkRules[*].id' found in cache 'properties.networkAcls.virtualNetworkRules[*].id'        
+1 => 2 => 3 => Property path 'Microsoft.KeyVault/vaults/networkAcls.virtualNetworkRules[*].id' is alias to 'properties.networkAcls.virtualNetworkRules[*].id'   
+1 => 2 => 3 => Property 'properties.networkAcls.virtualNetworkRules[*].id' found
+1 => 2 => 3 => Property 'networkAcls.virtualNetworkRules[*].id' found
+1 => 2 => 3 => Array evaluation for 'virtualNetworkRules[*].id'
+1 => 2 => 3 => 'field' return condition 'False'
+1 => 2 => 3 => Started evaluation
+1 => 2 => 3 => 'field' started
+1 => 2 => 3 => Alias 'Microsoft.KeyVault/vaults/networkAcls.defaultAction' found in cache 'properties.networkAcls.defaultAction'
+1 => 2 => 3 => Property path 'Microsoft.KeyVault/vaults/networkAcls.defaultAction' is alias to 'properties.networkAcls.defaultAction'
+1 => 2 => 3 => Property 'properties.networkAcls.defaultAction' found
+1 => 2 => 3 => Property 'networkAcls.defaultAction' found
+1 => 2 => 3 => Field comparison for 'defaultAction' with value 'Deny'
+1 => 2 => 3 => Property 'defaultAction' with value 'Deny' "equals" 'Allow' is 'False'
+1 => 2 => 3 => 'field' return condition 'False'
+1 => 2 => 'anyOf' return condition 'False'
+1 => 'allOf' return condition 'False'
+Policy evaluation finished with 'False' causing effect 'None'
+Policy 'azurepolicy' with test 'kv-iprules-with-allow-none' evaluated to 'None' which was expected -> 'PASS'
+```
+
 To evaluate single policy against single test file:
 
 ```powershell
