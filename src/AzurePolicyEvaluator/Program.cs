@@ -45,7 +45,7 @@ You can use this to test your policies before deploying them to Azure.
 Tool can be used in 3 different ways:
 
 1. Evaluate a single policy file against a single test file.
-2. Watch for policy changes in the folders and evaluate them against all test files in the sub-folders.
+2. Watch policy changes in the folders and evaluate them against all test files in the sub-folders.
 3. Run all tests from a folder.
 
 More information can be found here:

@@ -3,13 +3,13 @@
 [![ci](https://github.com/JanneMattila/azure-policy-evaluator/actions/workflows/ci.yml/badge.svg)](https://github.com/JanneMattila/azure-policy-evaluator/actions/workflows/ci.yml)
 
 > [!CAUTION]
-> This is personal and very **experimental** project
+> This is a personal and very **experimental** project
 > so don't expect anything from it.
 
 ## Background
 
 Azure Policy development is too hard.
-Unfortunately, typical policy development flow is:
+Unfortunately, the typical policy development flow is:
 
 - You manipulate JSON files
 - You deploy them to Azure
@@ -56,11 +56,11 @@ $nsg |  Set-AzNetworkSecurityGroup
 Your policy _might_ not block this time and your inbound rule is successfully created.
 This is exactly what you don't want to happen.
 
-Above can happen if other one is sending full NSG object:
+Above can happen if another one is sending a full NSG object:
 
 `Microsoft.Network/networkSecurityGroups`
 
-and other one is sending just the rule:
+and the other one is sending just the rule:
 
 `Microsoft.Network/networkSecurityGroups/securityRules`
 
@@ -71,7 +71,7 @@ Something that runs very similar to any unit test framework.
 You edit the file and voila, you see the results immediately
 in your console.
 
-What if we would have example test cases for you to use?
+What if we had example test cases for you to use? 
 You're developing NSG rules, then here are _set of test cases_
 to ease your development.
 
@@ -251,7 +251,7 @@ Description:
   Tool can be used in 3 different ways:
 
   1. Evaluate a single policy file against a single test file.
-  2. Watch for policy changes in the folders and evaluate them against all test files in the sub-folders.
+  2. Watch policy changes in the folders and evaluate them against all test files in the sub-folders.
   3. Run all tests from a folder.
 
   More information can be found here:
@@ -295,7 +295,12 @@ To run all tests from a folder and its sub-folders:
 ape -r samples
 ```
 
-> [!NOTE]  
+You can use the above e.g., in GitHub Actions or Azure Pipelines to run your tests.
+You can see example from this repository [CI workflow](./.github/workflows/ci.yml).
+You can use the exit code to determine if the tests passed or not and then fail the build if needed.
+
+> **Food for thought**
+>
 > Wouldn't it be cool to be able to clone e.g., 
 > [Community Policy Repo](https://github.com/Azure/Community-Policy/)
 > and then run all tests from there?
@@ -325,7 +330,7 @@ Azure Policy Evaluator finds all `*.json` files from the current folder and its 
 If the file name is `azurepolicy.json`, then it's considered as a policy file.
 Matching test files are files which have `*.json` extension and they are in the same folder or in the sub-folders.
 
-Here is directory structure from this repository `samples` folder:
+Here is the directory structure from this repository `samples` folder:
 
 ```text
 ├───Compute
@@ -335,7 +340,6 @@ Here is directory structure from this repository `samples` folder:
 │               linux-vm-none.json
 │               windows-vm-audit.json
 │               windows-vm-with-license-none.json
-│
 ├───Key Vault
 │   └───audit-if-key-vault-has-no-virtual-network-rules
 │       │   azurepolicy.json
@@ -362,7 +366,7 @@ In `tests` folder there are test files which are used to evaluate the policy.
 Test file name is used to describe the test case expected result.
 E.g., `securityrule-allows-ssh-deny.json` means that the test case expects the policy to `deny` the resource.
 
-You can start the `watch` mode from root of this repository:
+You can start the `watch` mode from the root of this repository:
 
 ```powershell
 ape -w -f samples
@@ -376,18 +380,25 @@ If you edit a policy file, then the tool will run all test cases which are relat
 
 ## How to create test files
 
-Test files are just JSON files which are used to describe the test case.
-Easiest way to create test file is to copy existing resource from Azure Portal and
+The test files are just ARM resource JSON files.
+
+The easiest way to create test files is to copy existing resource from Azure Portal and
 then modify it to match your test case.
-You can use `JSON View` in the Azure Portal to copy the JSON.
-Try to use latest available API Version to get all the relevant fields.
-Sometimes it might default to older API Version which does not contain all the fields that you need.
+You can use `JSON View` in the Azure Portal to copy the JSON from any resource.
+
+Remember to use the latest available API Version to get all the relevant fields.
+Sometimes it defaults to an older API Version which might not contain all the fields you need.
 You can remove any extra fields, identifiers and others which are not needed for the test case.
 
 ## Feedback
 
 Use [GitHub Discussions](https://github.com/JanneMattila/azure-policy-evaluator/discussions) to give feedback or provide your comments and ideas.
 It would be great to hear your thoughts about this tool and that do you see value in it.
+
+I hope this tool brings some thoughts and ideas to you.
+Would you use this to develop more policies since it's so easy to test them?
+
+The main question is, do you see value in this tool?
 
 ## Links
 
