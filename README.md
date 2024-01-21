@@ -81,7 +81,7 @@ The idea is to create a tool that can evaluate Azure Policy definitions
 against a given Azure Resource Manager JSON objects. 
 
 <details>
-<summary>Example ARM Resource "nsg.json" for Network Security Group (NSG) allowing port 22 usage</summary>
+<summary>Example ARM Resource "nsg-allow-ssh-deny.json" for Network Security Group (NSG) allowing port 22 usage</summary>
 
 ```json
 {
@@ -199,10 +199,12 @@ Policy example has been taken from [deny-ports-nsg](https://github.com/Azure/Com
 Now we can run our tool to evaluate the policy against the resource:
 
 ```console
-$ ape -p azurepolicy.json -t nsg.json
+$ ape -p azurepolicy.json -t nsg-allow-ssh-and-rdp-deny.json
 
-Policy 'azurepolicy' with test 'securityrule-allows-ssh-deny' evaluated to 'Deny' which was expected -> PASS
+Policy 'azurepolicy' with test 'nsg-allow-ssh-and-rdp-deny' evaluated to 'Deny' which was expected -> PASS
 ```
+
+Above verifies, that the policy correctly blocks the resource creation.
 
 See demo in action:
 
@@ -339,7 +341,7 @@ Policy 'azurepolicy' with test 'kv-iprules-with-allow-none' evaluated to 'None' 
 To evaluate single policy against single test file:
 
 ```powershell
-ape -p azurepolicy.json -t nsg.json
+ape -p azurepolicy.json -t nsg-deny.json
 ```
 
 To run all tests from a folder and its sub-folders:
