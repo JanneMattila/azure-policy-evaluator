@@ -48,21 +48,21 @@ jobs:
         run: src/AzurePolicyEvaluator/output/ape -r samples
 
       - name: Upload Linux artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: matrix.runtime.os == 'ubuntu-latest'
         with:
           name: ape-linux
           path: src/AzurePolicyEvaluator/output/ape
 
       - name: Upload macOS artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: matrix.runtime.os == 'macos-latest'
         with:
           name: ape-macos
           path: src/AzurePolicyEvaluator/output/ape
 
       - name: Upload Windows artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: matrix.runtime.os == 'windows-latest'
         with:
           name: ape-windows
