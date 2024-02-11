@@ -445,6 +445,24 @@ Remember to use the latest available API Version to get all the relevant fields.
 Sometimes it defaults to an older API Version which might not contain all the fields you need.
 You can remove any extra fields, identifiers and others which are not needed for the test case.
 
+Last part of the test file name is used to describe the expected policy evaluation result.
+E.g., `keyvault-no-rules-audit.json` means that the test case expects the policy to `audit`
+that specific resource. 
+Name seperator is `-` and it's used to split the test case name from the expected result.
+
+## Example policy and test cases
+
+If you need to create policy for denying inbound traffic to port 22 (SSH) or 3389 (RDP),
+then you're looking to implement Network Security Group (NSG) policy.
+
+You can find example policy from [deny-ports-nsg](./samples/Network/deny-ports-nsg/azurepolicy.jso)
+
+To test this policy, you can use these test cases:
+
+- [securityrule-allows-ssh-deny.json](./samples/Network/deny-ports-nsg/tests/securityrule-allows-ssh-deny.json)
+- [securityrule-allows-rdp-deny.json](./samples/Network/deny-ports-nsg/tests/securityrule-allows-rdp-deny.json)
+
+
 ## Feedback
 
 Use [GitHub Discussions](https://github.com/JanneMattila/azure-policy-evaluator/discussions) to give feedback or provide your comments and ideas.
