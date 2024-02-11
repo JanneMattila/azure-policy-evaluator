@@ -462,7 +462,6 @@ To test this policy, you can use these test cases:
 - [securityrule-allows-ssh-deny.json](./samples/Network/deny-ports-nsg/tests/securityrule-allows-ssh-deny.json)
 - [securityrule-allows-rdp-deny.json](./samples/Network/deny-ports-nsg/tests/securityrule-allows-rdp-deny.json)
 
-
 ## Feedback
 
 Use [GitHub Discussions](https://github.com/JanneMattila/azure-policy-evaluator/discussions) to give feedback or provide your comments and ideas.
