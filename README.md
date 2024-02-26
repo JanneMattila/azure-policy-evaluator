@@ -455,12 +455,12 @@ Name seperator is `-` and it's used to split the test case name from the expecte
 If you need to create policy for denying inbound traffic to port 22 (SSH) or 3389 (RDP),
 then you're looking to implement Network Security Group (NSG) policy.
 
-You can find example policy from [deny-ports-nsg](./samples/Network/deny-ports-nsg/azurepolicy.jso)
+You can find example policy from [deny-ports-nsg](./samples/Network/deny-ports-nsg/azurepolicy.json)
 
 To test this policy, you can use these test cases:
 
+- [nsg-allow-ssh-and-rdp-deny.json](./samples/Network/deny-ports-nsg/tests/nsg-allow-ssh-and-rdp-deny.json)
 - [securityrule-allows-ssh-deny.json](./samples/Network/deny-ports-nsg/tests/securityrule-allows-ssh-deny.json)
-- [securityrule-allows-rdp-deny.json](./samples/Network/deny-ports-nsg/tests/securityrule-allows-rdp-deny.json)
 
 ## Feedback
 
