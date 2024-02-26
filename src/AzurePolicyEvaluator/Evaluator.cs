@@ -218,7 +218,7 @@ public class Evaluator
                 result = ExecuteEvaluation(level + 1, notObject, test);
                 result.Condition = !result.Condition;
 
-                _logger.LogDebug("'{LogicalOperator}' return condition 'Condition'", PolicyConstants.LogicalOperators.Not, result.Condition);
+                _logger.LogDebug("'{LogicalOperator}' return condition '{Condition}'", PolicyConstants.LogicalOperators.Not, result.Condition);
                 return result;
             }
             else if (policy.TryGetPropertyIgnoreCasing(PolicyConstants.LogicalOperators.AnyOf, out var anyOfObject))
