@@ -8,6 +8,8 @@
 
 ## Background
 
+_See more detailed background blog post [here](https://www.jannemattila.com/azure/2024/02/26/do-you-see-value-in-azure-policy-evaluator.html)._
+
 Azure Policy development is too hard.
 Unfortunately, the typical policy development flow is:
 
@@ -206,12 +208,6 @@ Policy 'azurepolicy' with test 'nsg-allow-ssh-and-rdp-deny' evaluated to 'Deny' 
 
 Above verifies, that the policy correctly blocks the resource creation.
 
-See demo in action:
-
-```powershell
-# TO BE ADDED
-```
-
 ## Limitations
 
 As this is just an **experiment**, there are many limitations (list is not even exhaustive):
@@ -273,11 +269,15 @@ Options:
   -?, -h, --help                     Show help and usage information
 ```
 
-Most common usage is to navigate to the policy folder and then execute:
+Most common usage is to navigate to the policy folder and then execute it using `watch` mode:
 
 ```powershell
 ape -w
 ```
+
+See demo about `watch` in action:
+
+![Azure Policy Evaluator: Quick demo about watch mode](https://github.com/JanneMattila/azure-policy-evaluator/assets/2357647/f46e8cd0-58c7-4ced-a1ed-d1b606b50c46)
 
 To see `debug` level logging:
 
