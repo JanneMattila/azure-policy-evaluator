@@ -277,7 +277,7 @@ ape -w
 
 See demo about `watch` in action:
 
-![Azure Policy Evaluator: Quick demo about watch mode](https://github.com/JanneMattila/azure-policy-evaluator/assets/2357647/f46e8cd0-58c7-4ced-a1ed-d1b606b50c46)
+![Azure Policy Evaluator: Quick demo about watch mode](https://www.jannemattila.com/assets/posts/2024/02/26/do-you-see-value-in-azure-policy-evaluator/ape.gif)
 
 To see `debug` level logging:
 
