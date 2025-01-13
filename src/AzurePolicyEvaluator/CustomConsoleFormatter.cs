@@ -5,6 +5,13 @@ using System.Text;
 
 namespace AzurePolicyEvaluator;
 
+// CustomConsoleFormatter.cs
+// This file contains the implementation of the CustomConsoleFormatter class, which extends the ConsoleFormatter class
+// from Microsoft.Extensions.Logging.Console. The CustomConsoleFormatter provides a custom console logging format
+// with color-coded log levels. It follows the implementation pattern of SimpleConsoleFormatter.cs from the .NET runtime.
+// The class defines a set of colors for different log levels and overrides the Write method to format log messages
+// with these colors and additional context information.
+
 /// <summary>
 /// This implementation strongly follows the SimpleConsoleFormatter.cs implementation:
 /// https://github.com/dotnet/runtime/blob/main/src/libraries/Microsoft.Extensions.Logging.Console/src/SimpleConsoleFormatter.cs

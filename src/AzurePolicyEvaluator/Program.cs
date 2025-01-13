@@ -5,6 +5,10 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Console;
 using System.CommandLine;
 
+using System.Runtime.CompilerServices;
+
+[assembly: InternalsVisibleTo("AzurePolicyEvaluatorTests")]
+
 IServiceProvider serviceProvider;
 ILogger<Program> logger;
 var lastWriteTime = DateTime.MinValue;
